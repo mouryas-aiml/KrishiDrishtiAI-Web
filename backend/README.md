@@ -40,9 +40,32 @@ If the prompt already shows `M:\KrishiDrishtiAI-Web\backend>`, run only:
 mvn clean spring-boot:run
 ```
 
-The API listens on `http://localhost:8080`. PostgreSQL must be running with a
-database named `krishi_drishti`; configure credentials using the environment
-variables documented in [`.env.example`](./.env.example).
+Before starting the API, start PostgreSQL. If Docker Desktop is installed,
+start Docker Desktop, then use this second terminal from `backend`:
+
+```powershell
+docker compose up -d postgres
+docker compose ps
+```
+
+The included [`docker-compose.yml`](./docker-compose.yml) creates the
+`krishi_drishti` database with the default local credentials. If PostgreSQL is
+installed natively instead, start its Windows service and create the database:
+
+```powershell
+Get-Service -Name 'postgresql*'
+Start-Service -Name 'postgresql-x64-16'
+createdb -U postgres krishi_drishti
+```
+
+Adjust the service name and credentials for the installed PostgreSQL version.
+The API listens on `http://localhost:8080`; configure non-default values using
+the environment variables documented in [`.env.example`](./.env.example).
+
+For production, set `DATABASE_URL` to a JDBC URL beginning with
+`jdbc:postgresql://`, set `DATABASE_USERNAME` and `DATABASE_PASSWORD`, and set
+`CORS_ORIGIN` to the exact Vercel origin. The health check is
+`GET /api/health`.
 
 ## Start the website
 

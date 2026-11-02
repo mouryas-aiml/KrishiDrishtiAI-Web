@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: krishi-drishti-api
+    runtime: docker
+    rootDir: .
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: MODEL_PATH
+        value: /app/model/model.onnx
+      - key: CORS_ORIGIN
+        sync: false

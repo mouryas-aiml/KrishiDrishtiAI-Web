@@ -5,14 +5,22 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/krishi_drishti}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      connection-init-sql: SET TIME ZONE 'UTC'
   jpa:
     hibernate:
       ddl-auto: update
     open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  jackson:
+    time-zone: UTC
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 krishi:
   model-path: ${MODEL_PATH:../model/model.onnx}
-  cors-origin: ${CORS_ORIGIN:http://localhost:5173}
+  cors-origin: ${CORS_ORIGIN:http://localhost:5173,https://krishidrishti-ai-beta.vercel.app}

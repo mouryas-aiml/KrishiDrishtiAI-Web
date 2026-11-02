@@ -20,8 +20,18 @@ native runtime or packaged mobile application requirement.
 
 ### Backend
 
-Create a PostgreSQL database named `krishi_drishti`, then configure the values
-from [`backend/.env.example`](./backend/.env.example). From PowerShell:
+Start PostgreSQL first. With Docker Desktop running, use:
+
+```powershell
+cd M:\KrishiDrishtiAI-Web\backend
+docker compose up -d postgres
+```
+
+The included [`backend/docker-compose.yml`](./backend/docker-compose.yml)
+creates the local `krishi_drishti` database. For a native PostgreSQL
+installation, start its Windows service and create the database manually.
+Configure non-default values from
+[`backend/.env.example`](./backend/.env.example). Then run:
 
 ```powershell
 cd M:\KrishiDrishtiAI-Web\backend
@@ -34,6 +44,24 @@ a new terminal, and verify with `mvn -version`.
 
 The API starts at `http://localhost:8080`. The ONNX model path defaults to
 `../model/model.onnx`; override it with `MODEL_PATH` when needed.
+
+### Production connection
+
+Deploy the backend separately; Vercel only serves the frontend. The backend
+must expose HTTPS endpoints such as:
+
+```text
+https://your-backend-host.example.com/api/health
+```
+
+Set the exact backend API root (including `/api`) as the Vercel environment
+variable `VITE_API_URL`, then redeploy the frontend. The confirmed production
+frontend is `https://krishidrishti-ai-beta.vercel.app/`. Set the backend
+`CORS_ORIGIN` to that Vercel URL and any required preview URL, separated by
+commas.
+The backend database variables are `DATABASE_URL`,
+`DATABASE_USERNAME`, and `DATABASE_PASSWORD`. `DATABASE_URL` must be a JDBC
+PostgreSQL URL beginning with `jdbc:postgresql://`.
 
 ### Frontend
 
@@ -65,6 +93,7 @@ reachable from that device.
 | --- | --- | --- |
 | `POST` | `/api/predictions` | Multipart image inference |
 | `GET` | `/api/scans` | Stored scan history |
+| `GET` | `/api/health` | Backend health check |
 
 Image inference preserves the original 224x224 RGB preprocessing, ImageNet
 normalization, 39 output classes, background class index 4, stable softmax,
