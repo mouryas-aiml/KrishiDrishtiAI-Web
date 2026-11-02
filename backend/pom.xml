@@ -22,5 +22,35 @@
     <dependency><groupId>com.microsoft.onnxruntime</groupId><artifactId>onnxruntime</artifactId><version>${onnxruntime.version}</version></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
   </dependencies>
-  <build><plugins><plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin></plugins></build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>add-tensorflow-lite-classes</id>
+            <phase>generate-sources</phase>
+            <goals><goal>run</goal></goals>
+            <configuration>
+              <target>
+                <mkdir dir="${project.build.directory}/tensorflow-lite"/>
+                <get src="https://repo1.maven.org/maven2/org/tensorflow/tensorflow-lite/2.16.1/tensorflow-lite-2.16.1.aar" dest="${project.build.directory}/tensorflow-lite/tensorflow-lite.aar" usetimestamp="true"/>
+                <get src="https://repo1.maven.org/maven2/org/tensorflow/tensorflow-lite-api/2.16.1/tensorflow-lite-api-2.16.1.aar" dest="${project.build.directory}/tensorflow-lite/tensorflow-lite-api.aar" usetimestamp="true"/>
+                <unzip src="${project.build.directory}/tensorflow-lite/tensorflow-lite.aar" dest="${project.build.directory}/tensorflow-lite"/>
+                <unzip src="${project.build.directory}/tensorflow-lite/tensorflow-lite-api.aar" dest="${project.build.directory}/tensorflow-lite-api"/>
+                <unzip src="${project.build.directory}/tensorflow-lite-api/classes.jar" dest="${project.build.outputDirectory}"/>
+                <unzip src="${project.build.directory}/tensorflow-lite/classes.jar" dest="${project.build.outputDirectory}"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

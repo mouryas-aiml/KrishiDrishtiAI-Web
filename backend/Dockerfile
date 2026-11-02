@@ -10,8 +10,9 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 COPY --from=build /workspace/backend/target/krishi-drishti-api-1.0.0.jar app.jar
-COPY model/model.onnx /app/model/model.onnx
+COPY --from=build /workspace/backend/target/tensorflow-lite/jni/x86_64/libtensorflowlite_jni.so /app/native/libtensorflowlite_jni.so
+COPY model/model.tflite /app/model/model.tflite
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Duser.timezone=UTC", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Duser.timezone=UTC", "-Djava.library.path=/app/native", "-jar", "app.jar"]

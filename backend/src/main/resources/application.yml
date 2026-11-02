@@ -20,8 +20,8 @@ spring:
     time-zone: UTC
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 20MB
+      max-request-size: 20MB
 krishi:
-  model-path: ${MODEL_PATH:../model/model.onnx}
+  model-path: ${MODEL_PATH:../model/model.tflite}
   cors-origin: ${CORS_ORIGIN:http://localhost:5173,https://krishidrishti-ai-beta.vercel.app}
