@@ -62,10 +62,10 @@ Adjust the service name and credentials for the installed PostgreSQL version.
 The API listens on `http://localhost:8080`; configure non-default values using
 the environment variables documented in [`.env.example`](./.env.example).
 
-For production, set `DATABASE_URL` to a JDBC URL beginning with
-`jdbc:postgresql://`, set `DATABASE_USERNAME` and `DATABASE_PASSWORD`, and set
-`CORS_ORIGIN` to the exact Vercel origin. The health check is
-`GET /api/health`.
+For production, set `DATABASE_URL` to the full JDBC URL beginning with
+`jdbc:postgresql://` (not Render's `postgres://` URL), set
+`DATABASE_USERNAME` and `DATABASE_PASSWORD`, and set `CORS_ORIGIN` to the
+exact Vercel origin. The health check is `GET /api/health`.
 
 ## Start the website
 

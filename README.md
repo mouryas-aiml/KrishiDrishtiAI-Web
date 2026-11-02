@@ -60,8 +60,15 @@ frontend is `https://krishidrishti-ai-beta.vercel.app/`. Set the backend
 `CORS_ORIGIN` to that Vercel URL and any required preview URL, separated by
 commas.
 The backend database variables are `DATABASE_URL`,
-`DATABASE_USERNAME`, and `DATABASE_PASSWORD`. `DATABASE_URL` must be a JDBC
-PostgreSQL URL beginning with `jdbc:postgresql://`.
+`DATABASE_USERNAME`, and `DATABASE_PASSWORD`. `DATABASE_URL` must be the full
+JDBC PostgreSQL URL beginning with `jdbc:postgresql://`, for example:
+
+```text
+jdbc:postgresql://dpg-example-a.oregon-postgres.render.com:5432/krishi_drishti
+```
+
+Do not paste Render’s `postgres://` or `postgresql://` connection string
+directly into `DATABASE_URL`; Spring Boot requires the `jdbc:` prefix.
 
 ### Frontend
 
