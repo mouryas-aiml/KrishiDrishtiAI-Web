@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Krishi Drishti</string>
+
+    <!-- Language Selection -->
+    <string name="select_language">Select your language</string>
+    <string name="language">English</string>
+    <string name="english">English</string>
+    <string name="kannada">ಕನ್ನಡ</string>
+    <string name="hindi">हिंदी</string>
+    <string name="marathi">मराठी</string>
+
+    <!-- AI Feature Strings -->
+    <string name="ai_assistant">AI Crop Assistant</string>
+    <string name="ai_assistant_sub">Ask questions about crop diseases, fertilizers &amp; care</string>
+    <string name="weather_risk_title">Weather &amp; Early Risk Warning</string>
+    <string name="crop_health_history">Crop Health Scan History</string>
+    <string name="smart_treatment_guide">Smart Treatment Guidance</string>
+    <string name="ai_disease_scanner">AI Leaf Scan</string>
+    <string name="confidence_score">Confidence Score</string>
+    <string name="ai_recommendations">Recommended Next Steps</string>
+    <string name="ask_ai_hint">Ask about symptoms, fertilizers, or prevention...</string>
+
+
+    <!-- Navigation Buttons -->
+    <string name="next">Next</string>
+
+    <!-- Intro Screens -->
+    <string name="intro_heading">Find out what\'s happening to your plant</string>
+    <string name="intro_caption">Take a picture of your plant and we will provide you with a solution</string>
+
+    <!-- Action Buttons -->
+    <string name="save">Save</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Scan Message -->
+    <string name="not_scanned_yet">You have not scanned any plant yet. Scan your plant now!</string>
+
+    <!-- Menu Items -->
+    <string name="menu_profile">Profile</string>
+    <string name="menu_history">History</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_about">About</string>
+
+    <!-- Apple -->
+    <string name="apple_name">Apple</string>
+    <string name="apple_info">
+    <![CDATA[
+    Apple, <i>Malus domestica</i>, is a widely cultivated fruit tree from the Rosaceae family.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to apple scab, powdery mildew, and fire blight; early signs include leaf spots, wilting, or fungal growth.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use resistant varieties, prune infected branches, apply organic fungicides, and maintain proper air circulation.<br><br>
+    <b>Ideal Growing Conditions:</b> Thrives in well-drained loamy soil, requires full sunlight, and moderate watering with good drainage.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest in late summer to early fall when fruits are firm and ripe; average yield varies by variety.<br><br>
+    <b>Companion Planting:</b> Grows well with garlic, onions, and marigolds; avoid planting near walnut trees.<br><br>
+    <b>Market Value &amp; Uses:</b> Apples are used for fresh consumption, juice, cider, and baked goods; high demand in global markets.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires nitrogen, phosphorus, and potassium; deficiency may cause yellowing leaves and reduced fruit quality.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Best suited for temperate regions with cold winters and warm summers; common in North America, Europe, and Asia.
+    ]]>
+</string>
+
+    <!-- Blueberry -->
+    <string name="blueberry_name">Blueberry</string>
+    <string name="blueberry_info">
+    <![CDATA[
+    Blueberry, <i>Vaccinium spp.</i>, is a perennial shrub producing edible berries.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Prone to mummy berry, botrytis blight, and root rot.<br><br>
+    <b>Prevention &amp; Treatment:</b> Prune dead branches, maintain air circulation, and use organic fungicides.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers acidic soil (pH 4.5–5.5), full sun, and consistent watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest when berries turn deep blue; yield varies by variety.<br><br>
+    <b>Companion Planting:</b> Thrives alongside azaleas, rhododendrons, and heathers.<br><br>
+    <b>Market Value &amp; Uses:</b> Consumed fresh, frozen, or used in jams, juices, and baking.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires ammonium sulfate for nitrogen needs.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows best in cool, moist climates like North America and Europe.
+    ]]>
+</string>
+
+    <!-- Cherry -->
+    <string name="cherry_name">Cherry</string>
+    <string name="cherry_info">
+    <![CDATA[
+    Cherry, <i>Prunus avium</i>, is a fruit-bearing tree in the Rosaceae family.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to brown rot, leaf spot, and bacterial canker.<br><br>
+    <b>Prevention &amp; Treatment:</b> Prune regularly, remove fallen fruit, and apply fungicides.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers deep, well-drained soil, full sunlight, and moderate watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick cherries when fully colored and firm; yield varies per variety.<br><br>
+    <b>Companion Planting:</b> Best with garlic, onions, and chives; avoid near tomatoes.<br><br>
+    <b>Market Value &amp; Uses:</b> Used for fresh eating, preserves, baking, and juicing.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Needs nitrogen and potassium for fruiting.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows well in temperate climates with cold winters.
+    ]]>
+</string>
+
+    <!-- Corn -->
+    <string name="corn_name">Corn</string>
+    <string name="corn_info">
+    <![CDATA[
+    Corn, <i>Zea mays</i>, is a widely grown cereal grain.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to smut, common rust, and bacterial wilt.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use crop rotation, fungicides, and pest control techniques.<br><br>
+    <b>Ideal Growing Conditions:</b> Requires fertile, well-drained soil, full sun, and regular watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest when kernels are milky and fully developed.<br><br>
+    <b>Companion Planting:</b> Grows well with beans and squash (Three Sisters planting method).<br><br>
+    <b>Market Value &amp; Uses:</b> Used as food, livestock feed, and in biofuel production.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires high nitrogen levels for strong growth.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows in warm climates with long summers.
+    ]]>
+</string>
+
+    <!-- Grapes -->
+    <string name="grapes_name">Grapes</string>
+    <string name="grapes_info">
+    <![CDATA[
+    Grapes, <i>Vitis vinifera</i>, are cultivated for fresh fruit, wine, and raisins.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Prone to powdery mildew, downy mildew, and black rot.<br><br>
+    <b>Prevention &amp; Treatment:</b> Apply sulfur-based fungicides, prune regularly, and maintain airflow.<br><br>
+    <b>Ideal Growing Conditions:</b> Needs well-drained soil, full sunlight, and trellis support.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when berries are fully ripe and sweet.<br><br>
+    <b>Companion Planting:</b> Compatible with roses and garlic; avoid near cabbage.<br><br>
+    <b>Market Value &amp; Uses:</b> Consumed fresh, made into wine, raisins, and vinegar.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires potassium and magnesium for fruit development.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Best in Mediterranean climates.
+    ]]>
+</string>
+
+    <!-- Orange -->
+    <string name="orange_name">Orange</string>
+    <string name="orange_info">
+    <![CDATA[
+    Orange, <i>Citrus sinensis</i>, is an evergreen tree producing citrus fruit.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Affected by citrus greening, root rot, and canker.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use disease-free plants, apply copper fungicides, and improve drainage.<br><br>
+    <b>Ideal Growing Conditions:</b> Thrives in sandy loam soil, full sun, and moderate watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when fully orange and firm; yield varies.<br><br>
+    <b>Companion Planting:</b> Best with basil, mint, and marigold.<br><br>
+    <b>Market Value &amp; Uses:</b> Consumed fresh, juiced, or processed into marmalades.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires nitrogen, phosphorus, and potassium.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows best in subtropical and tropical climates.
+    ]]>
+</string>
+
+    <!-- Peach -->
+    <!-- Peach -->
+    <string name="peach_name">Peach</string>
+    <string name="peach_info">
+    <![CDATA[
+    Peach, <i>Prunus persica</i>, is a deciduous tree or shrub grown for its edible fruit.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to peach leaf curl, brown rot, and bacterial spot.<br><br>
+    <b>Prevention &amp; Treatment:</b> Apply copper fungicides, prune infected branches, and remove fallen leaves.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers well-drained sandy soil, full sun, and regular irrigation.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest when fruit is firm and slightly soft; yields vary based on variety.<br><br>
+    <b>Companion Planting:</b> Thrives with legumes and marigolds; avoid planting near potatoes.<br><br>
+    <b>Market Value &amp; Uses:</b> Used fresh, in jams, desserts, and juices; high demand globally.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires nitrogen and potassium for strong fruiting.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Best in temperate regions with warm summers.
+    ]]>
+</string>
+
+    <!-- Pepper Bell -->
+    <string name="pepper_bell_name">Pepper Bell</string>
+    <string name="pepper_bell_info">
+    <![CDATA[
+    Bell pepper, <i>Capsicum annuum</i>, is an annual or perennial plant cultivated for its edible fruit.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to bacterial spot, powdery mildew, and blossom-end rot.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use disease-resistant varieties, maintain good air circulation, and apply organic pesticides.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers loamy, well-drained soil, full sunlight, and moderate watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when firm and fully colored; high yields per plant.<br><br>
+    <b>Companion Planting:</b> Thrives with carrots, onions, and basil; avoid planting near beans.<br><br>
+    <b>Market Value &amp; Uses:</b> Used fresh, in salads, stir-fries, and stuffed dishes.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires phosphorus and calcium for healthy fruiting.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows best in warm climates with a long growing season.
+    ]]>
+</string>
+
+    <!-- Potato -->
+    <string name="potato_name">Potato</string>
+    <string name="potato_info">
+    <![CDATA[
+    Potato, <i>Solanum tuberosum</i>, is an herbaceous perennial plant cultivated for its edible tubers.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Affected by late blight, scab, and fusarium wilt.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use disease-free seed potatoes, crop rotation, and fungicides.<br><br>
+    <b>Ideal Growing Conditions:</b> Requires well-drained soil, cool temperatures, and consistent moisture.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest after foliage yellows; high-yielding crop.<br><br>
+    <b>Companion Planting:</b> Grows well with beans, corn, and cabbage; avoid planting near tomatoes.<br><br>
+    <b>Market Value &amp; Uses:</b> Used in fresh cooking, chips, fries, and industrial starch.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires potassium and phosphorus for strong tuber formation.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Thrives in cool climates with moderate rainfall.
+    ]]>
+</string>
+
+    <!-- Raspberry -->
+    <string name="raspberry_name">Raspberry</string>
+    <string name="raspberry_info">
+    <![CDATA[
+    Raspberry, <i>Rubus spp.</i>, is a fruit-bearing shrub with perennial roots and biennial stems.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to raspberry mosaic virus, cane blight, and rust.<br><br>
+    <b>Prevention &amp; Treatment:</b> Prune infected canes, improve air circulation, and apply fungicides.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers slightly acidic soil, full sun, and consistent watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when berries are fully colored and detach easily; moderate yield per plant.<br><br>
+    <b>Companion Planting:</b> Pairs well with garlic and onions; avoid planting near potatoes.<br><br>
+    <b>Market Value &amp; Uses:</b> Used fresh, in jams, desserts, and juices.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires nitrogen and organic mulch for best production.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows best in temperate regions with mild summers.
+    ]]>
+</string>
+
+    <!-- Soybean -->
+    <string name="soybean_name">Soybean</string>
+    <string name="soybean_info">
+    <![CDATA[
+    Soybean, <i>Glycine max</i>, is an annual legume cultivated for its protein-rich seeds.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to soybean rust, root rot, and bacterial blight.<br><br>
+    <b>Prevention &amp; Treatment:</b> Use disease-resistant varieties, proper crop rotation, and foliar sprays.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers well-drained loamy soil, warm temperatures, and full sunlight.<br><br>
+    <b>Harvesting &amp; Yield:</b> Harvest when pods are dry and brown; high-yield legume crop.<br><br>
+    <b>Companion Planting:</b> Grows well with corn and cucumbers; avoid planting near onions.<br><br>
+    <b>Market Value &amp; Uses:</b> Used in animal feed, tofu, soy milk, and biofuels.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires nitrogen-fixing bacteria to enhance soil fertility.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Thrives in warm temperate to tropical climates.
+    ]]>
+</string>
+
+    <!-- Strawberry -->
+    <string name="strawberry_name">Strawberry</string>
+    <string name="strawberry_info">
+    <![CDATA[
+    Strawberry, <i>Fragaria × ananassa</i>, is a short herbaceous perennial grown for its sweet fruit.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Susceptible to gray mold, leaf spot, and powdery mildew.<br><br>
+    <b>Prevention &amp; Treatment:</b> Mulch with straw, remove infected leaves, and apply organic sprays.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers sandy loam soil, full sun, and regular irrigation.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when fully red; moderate yield per plant.<br><br>
+    <b>Companion Planting:</b> Grows well with spinach and thyme; avoid planting near cabbage.<br><br>
+    <b>Market Value &amp; Uses:</b> Used fresh, in smoothies, desserts, and preserves.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires high potassium levels for fruiting.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows best in mild, temperate climates.
+    ]]>
+</string>
+
+    <!-- Tomato -->
+    <string name="tomato_name">Tomato</string>
+    <string name="tomato_info">
+    <![CDATA[
+    Tomato, <i>Lycopersicum esculentum</i>, is an annual vine or bush producing edible fruit.<br><br>
+    <b>Common Diseases &amp; Symptoms:</b> Prone to blight, wilt, and tomato mosaic virus.<br><br>
+    <b>Prevention &amp; Treatment:</b> Rotate crops, stake plants, and use fungicides.<br><br>
+    <b>Ideal Growing Conditions:</b> Prefers well-drained soil, full sun, and moderate watering.<br><br>
+    <b>Harvesting &amp; Yield:</b> Pick when fully colored and slightly firm.<br><br>
+    <b>Companion Planting:</b> Grows well with basil, carrots, and onions.<br><br>
+    <b>Market Value &amp; Uses:</b> Consumed fresh, in sauces, ketchup, and salads.<br><br>
+    <b>Fertilization &amp; Nutrient Needs:</b> Requires phosphorus and calcium for strong growth.<br><br>
+    <b>Climate &amp; Region Suitability:</b> Grows in warm, sunny climates.
+    ]]>
+</string>
+
+    <!-- Read More Button -->
+    <string name="read_more">Read More</string>
+    <string name="proc_image">Processing Image, Please Wait...</string>
+    <string name="top_pred">Top Predictions</string>
+
+    <!-- Disease Names -->
+    <string name="dname_01">Apple scab</string>
+    <string name="dname_02">Apple Black rot</string>
+    <string name="dname_03">Apple Cedar apple rust</string>
+    <string name="dname_04">Apple healthy</string>
+    <string name="dname_05">Background / No leaves / Invalid Input</string>
+    <string name="dname_06">Blueberry healthy</string>
+    <string name="dname_07">Cherry Powdery mildew</string>
+    <string name="dname_08">Cherry healthy</string>
+    <string name="dname_09">Corn Cercospora leaf spot</string>
+    <string name="dname_10">Corn Common rust</string>
+    <string name="dname_11">Corn Northern Leaf Blight</string>
+    <string name="dname_12">Corn healthy</string>
+    <string name="dname_13">Grape Black rot</string>
+    <string name="dname_14">Grape Esca (Black Measles)</string>
+    <string name="dname_15">Grape Leaf blight</string>
+    <string name="dname_16">Grape healthy</string>
+    <string name="dname_17">Orange Haunglongbing (Citrus greening)</string>
+    <string name="dname_18">Peach Bacterial spot</string>
+    <string name="dname_19">Peach healthy</string>
+    <string name="dname_20">Pepper bell Bacterial spot</string>
+    <string name="dname_21">Pepper bell healthy</string>
+    <string name="dname_22">Potato Early blight</string>
+    <string name="dname_23">Potato Late blight</string>
+    <string name="dname_24">Potato healthy</string>
+    <string name="dname_25">Raspberry healthy</string>
+    <string name="dname_26">Soybean healthy</string>
+    <string name="dname_27">Squash Powdery mildew</string>
+    <string name="dname_28">Strawberry Leaf scorch</string>
+    <string name="dname_29">Strawberry healthy</string>
+    <string name="dname_30">Tomato Bacterial spot</string>
+    <string name="dname_31">Tomato Early blight</string>
+    <string name="dname_32">Tomato Late blight</string>
+    <string name="dname_33">Tomato Leaf Mold</string>
+    <string name="dname_34">Tomato Septoria leaf spot</string>
+    <string name="dname_35">Tomato Spider mites</string>
+    <string name="dname_36">Tomato Target Spot</string>
+    <string name="dname_37">Tomato Yellow Leaf Curl Virus</string>
+    <string name="dname_38">Tomato Tomato mosaic virus</string>
+    <string name="dname_39">Tomato healthy</string>
+
+    <!--  About Disease Headings  -->
+    <string name="symptoms">Symptoms</string>
+    <string name="prevention">Prevention</string>
+    <string name="cause">Cause</string>
+    <string name="bcontrol">Biological Control</string>
+
+    <!-- Home Screen & Navigation -->
+    <string name="title_activity_home">Home</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="report">Report</string>
+    <string name="del_history">Delete All History</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="all_his_willbe_del">All history will be deleted!</string>
+    <string name="all_history_del">History was deleted.</string>
+
+
+    <!-- Disease Details: Each disease has four parts -->
+    <!-- Disease 1: Apple Scab -->
+    <string name="symptoms_01">Dark olive-green or brown spots appear on leaves and fruit. Leaves may curl or become distorted. Fruits develop rough, scabby lesions, reducing market value.</string>
+    <string name="prevention_01">Prune trees to improve air circulation. Remove and dispose of infected leaves from the ground. Apply fungicides before the growing season (copper-based or sulfur fungicides).</string>
+    <string name="cause_01">Caused by the fungus Venturia inaequalis, which thrives in cool, wet conditions.</string>
+    <string name="biological_01">Use resistant apple varieties. Spray neem oil or Bacillus subtilis to suppress fungal growth. Improve soil health by adding compost to strengthen plant immunity.</string>
+
+    <!-- Disease 2: Apple Black Rot -->
+    <string name="symptoms_02">Dark sunken lesions on apples that turn black over time. Leaves develop small brown spots that later turn yellow. Tree branches may die back in severe cases.</string>
+    <string name="prevention_02">Prune infected branches regularly. Remove and destroy fallen apples and leaves. Spray organic fungicides like Bordeaux mixture before bud break.</string>
+    <string name="cause_02">Caused by the fungus Botryosphaeria obtusa, which spreads through rain and wind.</string>
+    <string name="biological_02">Apply sulfur-based organic sprays. Use compost tea or beneficial microbes to protect against infection. Encourage natural predators like ladybugs that feed on disease-carrying insects.</string>
+
+    <!-- Disease 3: Apple Cedar Apple Rust -->
+    <string name="symptoms_03">Bright orange or yellow spots appear on apple leaves. Fruit may develop deformities and premature drops. Trees defoliate early, reducing yield.</string>
+    <string name="prevention_03">Remove juniper trees growing within 1 km of apple orchards (as they act as host plants). Use resistant apple varieties like Enterprise or Liberty. Spray copper fungicide during early spring.</string>
+    <string name="cause_03">Caused by Gymnosporangium juniperi-virginianae, which needs both juniper and apple trees to complete its life cycle.</string>
+    <string name="biological_03">Use beneficial bacteria sprays like Bacillus subtilis. Maintain soil health by adding compost and organic mulch. Improve air circulation around trees to reduce moisture retention.</string>
+
+    <!-- Disease 4: Apple Healthy -->
+    <string name="symptoms_04">No visible disease symptoms. Leaves are green, fruits develop normally, and trees remain productive.</string>
+    <string name="prevention_04">Provide balanced fertilizer (NPK). Prune trees for good air circulation. Monitor regularly for early disease signs.</string>
+    <string name="cause_04">Healthy plants due to well-maintained growing conditions.</string>
+    <string name="biological_04">Apply organic compost and encourage earthworms for better soil health. Use organic mulch to retain soil moisture and suppress weeds.</string>
+
+    <!-- Disease 5: Background / No leaves / Invalid Input -->
+    <string name="symptoms_05">Background / No leaves / Invalid Input</string>
+    <string name="prevention_05"></string>
+    <string name="cause_05"></string>
+    <string name="biological_05"></string>
+
+    <!-- Disease 6: Blueberry Healthy -->
+    <string name="symptoms_06">Strong, green leaves and high fruit production. No fungal or bacterial disease symptoms.</string>
+    <string name="prevention_06">Mulch plants with pine needles to maintain proper acidity. Avoid overcrowding to allow airflow. Use drip irrigation instead of overhead watering.</string>
+    <string name="cause_06">Proper plant care, good drainage, and disease-free environment.</string>
+    <string name="biological_06">Use mycorrhizal fungi to improve root strength. Introduce natural predators like ladybugs to control pests.</string>
+
+    <!-- Disease 7: Cherry Powdery Mildew -->
+    <string name="symptoms_07">White powdery patches on leaves, flowers, and young fruit. Leaves curl and become distorted. Fruits may crack or develop rough textures.</string>
+    <string name="prevention_07">Avoid overhead watering to keep foliage dry. Prune branches to improve airflow. Apply organic sulfur spray or neem oil regularly.</string>
+    <string name="cause_07">Caused by the fungus Podosphaera clandestina, which spreads in humid conditions.</string>
+    <string name="biological_07">Spray a mixture of baking soda and water (1 teaspoon per liter). Encourage beneficial fungi like Trichoderma in the soil. Use milk spray (diluted with water) to naturally suppress mildew growth.</string>
+
+    <!-- Disease 8: Cherry Healthy -->
+    <string name="symptoms_08">No visible disease symptoms. Proper flowering, fruiting, and leaf development.</string>
+    <string name="prevention_08">Apply organic fertilizers rich in potassium. Regular pruning to prevent overcrowding.</string>
+    <string name="cause_08">Healthy cherry trees due to good care and maintenance.</string>
+    <string name="biological_08">Use compost tea spray to strengthen plant immunity. Maintain a diverse ecosystem to encourage beneficial insects.</string>
+
+    <!-- Disease 9: Corn Cercospora Leaf Spot -->
+    <string name="symptoms_09">Small, brown spots with a grayish center on leaves. Leaves turn yellow and dry prematurely. Reduces crop yield significantly.</string>
+    <string name="prevention_09">Use disease-resistant corn varieties. Rotate crops annually to break the disease cycle. Avoid overhead irrigation.</string>
+    <string name="cause_09">Caused by the fungus Cercospora zeae-maydis, which spreads through wind and rain.</string>
+    <string name="biological_09">Spray compost tea to boost natural plant defenses. Apply Bacillus subtilis as a natural fungicide. Maintain proper nitrogen balance in soil.</string>
+
+    <!-- Disease 10: Corn Common Rust -->
+    <string name="symptoms_10">Reddish-brown pustules on both sides of leaves. Leaves may become twisted and yellow. Can spread rapidly in humid conditions.</string>
+    <string name="prevention_10">Plant rust-resistant corn hybrids. Use crop rotation to break disease cycles. Remove infected plant debris from the field.</string>
+    <string name="cause_10">Caused by the fungus Puccinia sorghi, which thrives in wet conditions.</string>
+    <string name="biological_10">Introduce Trichoderma-based biofungicides. Encourage natural predators like ladybugs to prevent disease-carrying pests. Improve plant immunity with compost tea or organic potassium fertilizers.</string>
+
+    <!-- Disease 11: Corn Northern Leaf Blight -->
+    <string name="symptoms_11">Gray-green lesions on leaves that enlarge and turn brown. Fungal spores spread easily in moist conditions. Severe infection leads to yield loss.</string>
+    <string name="prevention_11">Plant disease-resistant corn varieties. Apply fungicides if needed. Use proper field sanitation to reduce fungal spores.</string>
+    <string name="cause_11">Caused by the fungus Exserohilum turcicum, which spreads through rain and wind.</string>
+    <string name="biological_11">Apply biofungicides containing Trichoderma. Spray compost tea regularly. Ensure proper soil drainage to prevent fungal buildup.</string>
+
+    <!-- Disease 12: Corn Healthy -->
+    <string name="symptoms_12">No disease symptoms. Strong leaf growth and high grain production.</string>
+    <string name="prevention_12">Monitor for early disease signs. Use balanced fertilizers and irrigation techniques.</string>
+    <string name="cause_12">Healthy corn due to optimal growing conditions.</string>
+    <string name="biological_12">Introduce nitrogen-fixing bacteria in the soil. Rotate crops with legumes to improve soil fertility.</string>
+
+    <!-- Disease 13: Grape Black Rot -->
+    <string name="symptoms_13">Initial symptoms include small, circular reddish-brown spots on leaves, which later expand and turn black with tan centers. Infected fruits develop sunken, dark lesions, shrivel, and become mummified.</string>
+    <string name="prevention_13">Prune infected vines and remove fallen debris to prevent disease spread. Apply copper-based fungicides in early spring before bud break. Maintain proper vineyard spacing for air circulation.</string>
+    <string name="cause_13">Caused by the fungus Guignardia bidwellii, which thrives in warm, humid conditions and spreads through wind and rain splash.</string>
+    <string name="biological_13">Spray with Bacillus subtilis-based biofungicide to suppress fungal growth. Introduce beneficial fungi like Trichoderma to compete with pathogens in the soil.</string>
+
+    <!-- Disease 14: Grape Esca (Black Measles) -->
+    <string name="symptoms_14">Symptoms include yellowing leaves with brown streaks, premature leaf drop, and shriveled berries. The wood may develop internal black streaks, making the plant weak and unproductive.</string>
+    <string name="prevention_14">Prune infected vines and sterilize pruning tools. Remove and burn infected wood to prevent disease spread. Avoid excessive nitrogen fertilization, which weakens vine resistance.</string>
+    <string name="cause_14">Esca is caused by a fungal complex including Phaeomoniella chlamydospora and Phaeoacremonium aleophilum. It enters the vine through pruning wounds.</string>
+    <string name="biological_14">Use Trichoderma-based biocontrol agents to colonize pruning wounds and prevent infection. Apply compost tea to improve vine immunity.</string>
+
+    <!-- Disease 15: Grape Leaf Blight -->
+    <string name="symptoms_15">Leaves develop dark brown, irregular spots which expand and dry out, causing leaf curling. Reduced photosynthesis weakens the vine and lowers grape production.</string>
+    <string name="prevention_15">Ensure proper pruning and ventilation to reduce humidity. Apply organic fungicides like sulfur sprays before infection sets in.</string>
+    <string name="cause_15">Fungal pathogens like Pseudocercospora vitis thrive in humid environments and spread via wind and rain.</string>
+    <string name="biological_15">Use neem oil or garlic extract as preventive sprays. Strengthen plant immunity with organic seaweed foliar applications.</string>
+
+    <!-- Disease 16: Grape Healthy -->
+    <string name="symptoms_16">Leaves are green and free of spots. Berries grow evenly, ripen normally, and exhibit good color development.</string>
+    <string name="prevention_16">Regularly prune to allow good airflow, monitor for early disease signs, and maintain soil fertility.</string>
+    <string name="cause_16">Optimal growing conditions, including proper nutrition, irrigation, and disease monitoring, prevent infections.</string>
+    <string name="biological_16">Apply organic mulch around the vines to retain soil moisture and promote healthy root growth.</string>
+
+    <!-- Disease 17: Orange Haunglongbing (Citrus Greening) -->
+    <string name="symptoms_17">Leaves develop blotchy yellow patches and curl. Fruits are small, misshapen, and taste bitter. Branch dieback occurs over time.</string>
+    <string name="prevention_17">Use disease-free saplings. Control psyllid insects that spread the bacteria with insecticidal sprays.</string>
+    <string name="cause_17">Caused by the bacterium Candidatus Liberibacter, which is transmitted by Asian citrus psyllids.</string>
+    <string name="biological_17">Introduce parasitic wasps to control psyllid populations. Use neem oil as an organic repellent.</string>
+
+    <!-- Disease 18: Peach Bacterial Spot -->
+    <string name="symptoms_18">Dark, water-soaked spots appear on leaves and fruit. As the disease progresses, lesions become rough and scabby.</string>
+    <string name="prevention_18">Plant resistant peach varieties. Prune trees to increase air circulation and apply copper-based bactericides.</string>
+    <string name="cause_18">Caused by Xanthomonas arboricola bacteria, which spread via rain splash and infected plant debris.</string>
+    <string name="biological_18">Use Bacillus subtilis-based biofungicides. Improve tree health by applying compost tea.</string>
+
+    <!-- Disease 19: Peach Healthy -->
+    <string name="symptoms_19">Leaves are bright green, and fruits develop normally without spots or lesions.</string>
+    <string name="prevention_19">Ensure proper pruning, balanced fertilization, and irrigation management.</string>
+    <string name="cause_19">Healthy peach trees result from optimal growth conditions and effective disease monitoring.</string>
+    <string name="biological_19">Enhance soil microbiota with mycorrhizal fungi to improve nutrient absorption.</string>
+
+    <!-- Disease 20: Pepper Bell Bacterial Spot -->
+    <string name="symptoms_20">Small, dark water-soaked spots on leaves and fruits. Leaves may turn yellow and drop prematurely.</string>
+    <string name="prevention_20">Rotate crops yearly. Avoid overhead watering. Use certified disease-free seeds.</string>
+    <string name="cause_20">Caused by Xanthomonas campestris, spreading through contaminated seeds and infected soil.</string>
+    <string name="biological_20">Apply Bacillus subtilis-based biofungicides. Neem oil spray can reduce bacterial spread.</string>
+
+    <!-- Disease 21: Pepper Bell Healthy -->
+    <string name="symptoms_21">Plants have deep green leaves and firm fruits without blemishes.</string>
+    <string name="prevention_21">Use organic compost and maintain balanced watering.</string>
+    <string name="cause_21">Proper plant care and disease monitoring prevent infections.</string>
+    <string name="biological_21">Encourage beneficial insects like ladybugs to control pests.</string>
+
+    <!-- Disease 22: Potato Early Blight -->
+    <string name="symptoms_22">Brown, circular spots with concentric rings appear on older leaves. Infected plants have reduced tuber formation.</string>
+    <string name="prevention_22">Use disease-free seeds. Apply mulch to prevent spore spread. Avoid excessive nitrogen fertilization.</string>
+    <string name="cause_22">Caused by Alternaria solani fungus, thriving in warm, wet conditions.</string>
+    <string name="biological_22">Use Trichoderma-based biofungicides to control fungal spread.</string>
+
+    <!-- Disease 23: Potato Late Blight -->
+    <string name="symptoms_23">Dark water-soaked lesions form on leaves and stems. A white fungal growth appears under high humidity.</string>
+    <string name="prevention_23">Plant resistant potato varieties. Spray with copper-based fungicides at early signs of infection.</string>
+    <string name="cause_23">Caused by Phytophthora infestans, spreading through spores in wet conditions.</string>
+    <string name="biological_23">Use neem oil or compost tea as organic sprays to strengthen plant resistance.</string>
+
+    <!-- Disease 24: Potato Healthy -->
+    <string name="symptoms_24">Leaves are healthy and dark green, with no signs of disease. Tubers develop fully and evenly.</string>
+    <string name="prevention_24">Ensure regular irrigation, proper spacing, and disease monitoring.</string>
+    <string name="cause_24">Well-maintained soil and careful pest control ensure plant health.</string>
+    <string name="biological_24">Encourage natural predators like beneficial nematodes to protect soil health.</string>
+
+    <!-- Disease 25: Raspberry Healthy -->
+    <string name="symptoms_25">Raspberry plants exhibit bright green leaves and firm, juicy fruits without any visible blemishes or signs of disease.</string>
+    <string name="prevention_25">Ensure proper irrigation, avoid overhead watering, and maintain good airflow between plants to prevent fungal infections.</string>
+    <string name="cause_25">Optimal growing conditions, including well-drained soil and balanced nutrients, prevent diseases.</string>
+    <string name="biological_25">Use organic compost and beneficial microbes like mycorrhizal fungi to enhance plant health.</string>
+
+    <!-- Disease 26: Soybean Healthy -->
+    <string name="symptoms_26">Soybean plants show uniform growth, deep green leaves, and no visible symptoms of disease or pest damage.</string>
+    <string name="prevention_26">Practice crop rotation and balanced fertilization to maintain healthy plants and prevent soil depletion.</string>
+    <string name="cause_26">Proper soil management, irrigation, and pest control contribute to disease-free soybean crops.</string>
+    <string name="biological_26">Incorporate nitrogen-fixing bacteria such as Rhizobium to improve soil fertility and plant health.</string>
+
+    <!-- Disease 27: Squash Powdery Mildew -->
+    <string name="symptoms_27">White, powdery spots appear on leaves, stems, and fruits. Infected leaves may curl, turn yellow, and drop prematurely.</string>
+    <string name="prevention_27">Plant resistant squash varieties. Space plants properly to increase airflow and reduce humidity.</string>
+    <string name="cause_27">Caused by the fungus Podosphaera xanthii, which spreads in warm, dry conditions.</string>
+    <string name="biological_27">Apply sulfur-based sprays or neem oil as a preventive measure. Use milk spray (1 part milk to 9 parts water) to suppress fungal growth.</string>
+
+    <!-- Disease 28: Strawberry Leaf Scorch -->
+    <string name="symptoms_28">Strawberry leaves develop reddish-brown spots with yellow halos, eventually leading to leaf withering and reduced fruit yield.</string>
+    <string name="prevention_28">Avoid overhead watering and keep plant beds free of fallen debris. Apply mulch to prevent fungal spore spread.</string>
+    <string name="cause_28">Caused by the fungus Diplocarpon earlianum, which thrives in warm, humid conditions.</string>
+    <string name="biological_28">Use compost tea or Trichoderma-based biofungicides to reduce fungal activity.</string>
+
+    <!-- Disease 29: Strawberry Healthy -->
+    <string name="symptoms_29">Leaves are green and firm, and fruits develop evenly with vibrant color and no signs of disease.</string>
+    <string name="prevention_29">Maintain proper plant spacing, avoid excess nitrogen fertilization, and monitor for pests.</string>
+    <string name="cause_29">Strawberries remain healthy when provided with balanced nutrition, proper sunlight, and adequate drainage.</string>
+    <string name="biological_29">Apply seaweed extract as a foliar spray to improve plant vigor and immunity.</string>
+
+    <!-- Disease 30: Tomato Bacterial Spot -->
+    <string name="symptoms_30">Small, dark brown spots with yellow halos appear on leaves and fruits. Severely infected leaves may drop prematurely.</string>
+    <string name="prevention_30">Use disease-free seeds, rotate crops, and avoid overhead watering to reduce bacterial spread.</string>
+    <string name="cause_30">Caused by the bacterium Xanthomonas campestris, which spreads via contaminated soil and splashing water.</string>
+    <string name="biological_30">Apply copper-based bactericides and Bacillus subtilis-based biofungicides for natural disease control.</string>
+
+    <!-- Disease 31: Tomato Early Blight -->
+    <string name="symptoms_31">Dark brown spots with concentric rings appear on lower leaves. Leaves turn yellow and drop, reducing fruit yield.</string>
+    <string name="prevention_31">Plant resistant tomato varieties. Apply mulch to prevent soil-borne spores from spreading.</string>
+    <string name="cause_31">Caused by Alternaria solani, a fungal pathogen thriving in warm, wet conditions.</string>
+    <string name="biological_31">Use Trichoderma-based biocontrol agents. Apply neem oil or compost tea sprays regularly.</string>
+
+    <!-- Disease 32: Tomato Late Blight -->
+    <string name="symptoms_32">Water-soaked lesions develop on leaves, turning dark brown with a fuzzy white fungal growth under humid conditions.</string>
+    <string name="prevention_32">Destroy infected plants, avoid overhead watering, and apply copper-based fungicides before infection sets in.</string>
+    <string name="cause_32">Caused by Phytophthora infestans, a fast-spreading fungus favored by cool, wet conditions.</string>
+    <string name="biological_32">Use biological fungicides containing Bacillus subtilis. Introduce Trichoderma fungi into the soil.</string>
+
+    <!-- Disease 33: Tomato Leaf Mold -->
+    <string name="symptoms_33">Yellow patches form on upper leaf surfaces, with a velvety olive-green mold underneath.</string>
+    <string name="prevention_33">Increase air circulation in greenhouses, avoid overhead watering, and use resistant tomato varieties.</string>
+    <string name="cause_33">Caused by Passalora fulva, a fungal pathogen that thrives in high humidity and poor airflow.</string>
+    <string name="biological_33">Apply neem oil or baking soda sprays to prevent fungal establishment.</string>
+
+    <!-- Disease 34: Tomato Septoria Leaf Spot -->
+    <string name="symptoms_34">Small, circular, gray-brown spots with dark borders develop on older leaves, eventually causing defoliation.</string>
+    <string name="prevention_34">Use disease-free seeds, remove infected leaves, and avoid overhead irrigation.</string>
+    <string name="cause_34">Caused by Septoria lycopersici, a fungal pathogen that spreads in wet conditions.</string>
+    <string name="biological_34">Apply compost tea or Trichoderma-based biofungicides to suppress fungal growth.</string>
+
+    <!-- Disease 35: Tomato Spider Mites -->
+    <string name="symptoms_35">Leaves turn yellow and stippled with tiny white spots. Fine webbing appears on the undersides of leaves.</string>
+    <string name="prevention_35">Spray water forcefully on plants to dislodge mites. Introduce beneficial insects such as ladybugs and predatory mites.</string>
+    <string name="cause_35">Caused by Tetranychus urticae, which thrives in hot, dry conditions.</string>
+    <string name="biological_35">Use neem oil or insecticidal soap to reduce mite populations.</string>
+
+    <!-- Disease 36: Tomato Target Spot -->
+    <string name="symptoms_36">Dark, circular lesions with concentric rings develop on leaves, stems, and fruits.</string>
+    <string name="prevention_36">Rotate crops, avoid excessive nitrogen, and prune plants for good air circulation.</string>
+    <string name="cause_36">Caused by Corynespora cassiicola, a fungal pathogen spread by wind and water.</string>
+    <string name="biological_36">Use Trichoderma-based biofungicides to suppress fungal growth.</string>
+
+    <!-- Disease 37: Tomato Yellow Leaf Curl Virus -->
+    <string name="symptoms_37">Leaves curl upward and turn yellow, with stunted plant growth and reduced fruit production.</string>
+    <string name="prevention_37">Control whiteflies, which spread the virus. Use reflective mulch to deter insect vectors.</string>
+    <string name="cause_37">Caused by Tomato yellow leaf curl virus (TYLCV), transmitted by whiteflies.</string>
+    <string name="biological_37">Introduce predatory insects like lacewings to reduce whitefly populations.</string>
+
+    <!-- Disease 38: Tomato Mosaic Virus -->
+    <string name="symptoms_38">Leaves display mottled yellow and green patterns, becoming distorted and wrinkled.</string>
+    <string name="prevention_38">Disinfect gardening tools, remove infected plants, and use resistant seed varieties.</string>
+    <string name="cause_38">Caused by the Tomato mosaic virus, which spreads through contaminated tools and human handling.</string>
+    <string name="biological_38">Apply compost tea to boost plant immunity against viral infections.</string>
+
+    <!-- Disease 39: Tomato Healthy -->
+    <string name="symptoms_39">Plants have vibrant green leaves, firm stems, and healthy fruits without spots or deformities.</string>
+    <string name="prevention_39">Regularly prune and fertilize plants, maintain proper watering schedules, and monitor for early signs of disease.</string>
+    <string name="cause_39">Optimal plant health results from balanced soil nutrients, pest control, and good growing conditions.</string>
+    <string name="biological_39">Enhance soil microbiota with beneficial bacteria and fungi to support strong root systems.</string>
+
+
+
+    <string name="prediction_failed">Prediction Failed</string>
+    <string name="msg_no_leaf_found">No leaf found—center a single leaf on a plain background and try again.</string>
+    <string name="msg_low_confidence">Hard to tell from this photo—capture a clearer leaf image and retry.</string>
+
+
+    <string name="about_page" translatable="false">
+    <![CDATA[
+    <html>
+    <body style="text-align:justify;">
+        <h2>About Krishi Drishti - Intelligent AI Crop Health Platform</h2>
+        <p>
+            <b>Krishi Drishti</b> is an AI-powered agricultural mobile application that empowers farmers with early disease risk warnings, instant on-device leaf disease detection, smart treatment guidance, and an AI crop health assistant.
+        </p>
+
+        <h3>Platform Capabilities</h3>
+        <ul>
+            <li>🌱 On-Device TFLite Leaf Disease Classification</li>
+            <li>⛅ Weather-Based Early Disease Risk Warning</li>
+            <li>🤖 Interactive AI Crop Assistant</li>
+            <li>📊 Scan History & Health Trends Tracker</li>
+            <li>🌐 Multilingual Support (English, Kannada, Hindi, Marathi)</li>
+        </ul>
+
+        <p style="text-align:center;">
+            <i>Empowering Farmers with AI Technology 🌾</i>
+        </p>
+    </body>
+    </html>
+    ]]>
+</string>
+
+</resources>

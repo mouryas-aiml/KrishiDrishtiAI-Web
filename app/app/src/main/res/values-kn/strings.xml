@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">ಕೃಷಿ ದೃಷ್ಟಿ</string>
+
+    <!-- Language Selection -->
+    <string name="select_language">ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+    <string name="language">ಭಾಷೆ</string>
+    <string name="english">English</string>
+    <string name="kannada">ಕನ್ನಡ</string>
+    <string name="hindi">हिंदी</string>
+    <string name="marathi">मराठी</string>
+
+    <!-- AI Feature Strings -->
+    <string name="ai_assistant">ಎಐ ಬೆಳೆ ಸಹಾಯಕ</string>
+    <string name="ai_assistant_sub">ಬೆಳೆ ರೋಗಗಳು, ಗೊಬ್ಬರಗಳು ಮತ್ತು ಆರೈಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ</string>
+    <string name="weather_risk_title">ಹವಾಮಾನ ಮತ್ತು ರೋಗ ಮುನ್ನೆಚ್ಚರಿಕೆ</string>
+    <string name="crop_health_history">ಬೆಳೆ ಆರೋಗ್ಯ ಇತಿಹಾಸ</string>
+    <string name="smart_treatment_guide">ಸ್ಮಾರ್ಟ್ ಚಿಕಿತ್ಸೆ ಮಾರ್ಗದರ್ಶನ</string>
+    <string name="ai_disease_scanner">ಎಐ ಎಲೆ ಸ್ಕ್ಯಾನ್</string>
+    <string name="confidence_score">ವಿಶ್ವಾಸಾರ್ಹತೆ ಸ್ಕೋರ್</string>
+    <string name="ai_recommendations">ಶಿಫಾರಸು ಮಾಡಿದ ಮುಂದಿನ ಹಂತಗಳು</string>
+    <string name="ask_ai_hint">ಲಕ್ಷಣಗಳು, ಗೊಬ್ಬರಗಳು ಅಥವಾ ತಡೆಗಟ್ಟುವಿಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ...</string>
+
+    <!-- Navigation Buttons -->
+    <string name="next">ಮುಂದೆ</string>
+
+    <!-- Intro Screens -->
+    <string name="intro_heading">ನಿಮ್ಮ ಬೆಳೆಗೆ ಏನಾಗುತ್ತಿದೆ ಎಂಬುದನ್ನು ತಿಳಿಯಿರಿ</string>
+    <string name="intro_caption">ನಿಮ್ಮ ಬೆಳೆಯ ಚಿತ್ರವನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ, ನಾವು ಪರಿಹಾರ ನೀಡುತ್ತೇವೆ</string>
+
+    <!-- Action Buttons -->
+    <string name="save">ಉಳಿಸಿ</string>
+    <string name="ok">ಸರಿ</string>
+    <string name="cancel">ರದ್ದುಮಾಡಿ</string>
+
+    <!-- Scan Message -->
+    <string name="not_scanned_yet">ನೀವು ಇನ್ನೂ ಯಾವುದೇ ಬೆಳೆಯನ್ನು ಸ್ಕ್ಯಾನ್ ಮಾಡಿಲ್ಲ. ಈಗ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ!</string>
+
+    <!-- Menu Items -->
+    <string name="menu_profile">ಪ್ರೊಫೈಲ್</string>
+</resources>
