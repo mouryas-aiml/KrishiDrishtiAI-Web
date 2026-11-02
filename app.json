@@ -15,14 +15,18 @@
         {
           "enableCoreML": false
         }
-      ]
+      ],
+      "expo-font"
     ],
     "android": {
       "package": "com.krishidrishti.app",
       "adaptiveIcon": {
         "backgroundColor": "#0B3D2E"
       },
-      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "extra": {
       "eas": {
