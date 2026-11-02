@@ -14,7 +14,7 @@
         android:layout_width="140dp"
         android:layout_height="140dp"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_krishi_drishti_logo"
+        android:src="@drawable/krishi_drishti_logo"
         android:contentDescription="Krishi Drishti Logo" />
 
     <TextView

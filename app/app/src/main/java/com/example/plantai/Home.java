@@ -4,6 +4,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +16,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 
@@ -29,6 +32,7 @@ public class Home extends AppCompatActivity implements PlantCardsAdapter.PlantCa
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
+    private DrawerLayout drawerLayout;
 
     private String[] plantsName = new String[13];
 
@@ -36,6 +40,19 @@ public class Home extends AppCompatActivity implements PlantCardsAdapter.PlantCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        drawerLayout = findViewById(R.id.homeDrawer);
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(v -> drawerLayout.openDrawer(androidx.core.view.GravityCompat.START));
+
+        NavigationView navigationView = findViewById(R.id.homeNavigation);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            boolean handled = navigateFromMenu(item.getItemId());
+            if (handled) {
+                drawerLayout.closeDrawers();
+            }
+            return handled;
+        });
 
         // Get setting and change language
         selected_lang = load_setting();
@@ -71,6 +88,10 @@ public class Home extends AppCompatActivity implements PlantCardsAdapter.PlantCa
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
+                    drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START);
+                    return;
+                }
                 finishAffinity(); // Close the app
             }
         });
@@ -129,21 +150,29 @@ public class Home extends AppCompatActivity implements PlantCardsAdapter.PlantCa
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (navigateFromMenu(item.getItemId())) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private boolean navigateFromMenu(int itemId) {
         Intent intent = null;
-        if (item.getItemId() == R.id.op_all_diseases) {
+        if (itemId == R.id.op_all_diseases) {
             intent = new Intent(this, AllDiseases.class);
-        } else if (item.getItemId() == R.id.op_reports) {
+        } else if (itemId == R.id.op_reports) {
             intent = new Intent(this, Reports.class);
-        } else if (item.getItemId() == R.id.op_setting) {
+        } else if (itemId == R.id.op_setting) {
             intent = new Intent(this, Settings.class);
-        } else if (item.getItemId() == R.id.op_about) {
+        } else if (itemId == R.id.op_about) {
             intent = new Intent(this, About.class);
         }
 
         if (intent != null) {
             startActivity(intent);
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     /** LOADING SETTINGS & SET LANGUAGE **/

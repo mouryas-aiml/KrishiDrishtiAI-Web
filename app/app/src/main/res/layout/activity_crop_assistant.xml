@@ -50,7 +50,7 @@
         <ImageView
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:src="@drawable/ic_krishi_drishti_logo" />
+            android:src="@drawable/krishi_drishti_logo" />
     </LinearLayout>
 
     <!-- Chat Messages Scroll Container -->
