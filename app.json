@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Krishi Drishti",
+    "slug": "krishi-drishti",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "scheme": "krishidrishti",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      [
+        "react-native-fast-tflite",
+        {
+          "enableCoreML": false
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.krishidrishti.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B3D2E"
+      },
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "replace-with-your-eas-project-id"
+      }
+    }
+  }
+}

@@ -36,3 +36,8 @@ local.properties
 ehthumbs.db
 Thumbs.db
 *.pyc
+.expo/
+node_modules/
+dist/
+android/
+ios/

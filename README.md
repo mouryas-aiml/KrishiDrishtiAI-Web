@@ -1,4 +1,86 @@
-# 🌾 KRISHI DRISHTI (ಕೃಷಿ ದೃಷ್ಟಿ) — AI-Powered Crop Disease Detection & Early Warning Platform
+# 🌾 KRISHI DRISHTI (ಕೃಷಿ ದೃಷ್ಟಿ) — React Native AI Crop Assistant
+
+## React Native application
+
+The active application is now an Expo-managed React Native + TypeScript app. It uses
+Expo Router, NativeWind, Zustand, Expo SQLite, and EAS Build. The mobile UI is
+mobile-first and includes a dashboard, camera/gallery scan flow, on-device model
+inference, diagnosis results, history, assistant, profile/language selection, and
+a menu bar.
+
+### Run locally
+
+```powershell
+npm install
+npx expo start
+```
+
+Use Expo Go for the non-inference screens. The TFLite scanner requires a development
+build because `react-native-fast-tflite` is a native module:
+
+```powershell
+npx expo run:android
+```
+
+Build an installable preview APK with EAS:
+
+```powershell
+npx eas login
+npx eas build:configure
+eas build --platform android --profile preview
+```
+
+The `preview` profile is configured for an APK. EAS prints the download URL when the
+build completes. Do not commit generated `android/` or `ios/` directories.
+
+### Structure
+
+```text
+app/                 Expo Router screens and tabs
+src/inference.ts     TFLite preprocessing, softmax, and display policy
+src/database.ts      SQLite scan history schema and persistence
+src/store.ts         Zustand language and scan state
+assets/model.tflite  Byte-for-byte copy of the Android model asset
+model/               Original model binaries and export metadata
+```
+
+### Model compatibility and preservation
+
+The original Android inference contract is retained: resize to 224x224, RGB
+ImageNet normalization (`mean=[.485,.456,.406]`, `std=[.229,.224,.225]`), 39
+output logits, numerically stable softmax, background class index 4 blocked when
+top-ranked, then non-background results below 0.25 removed and the first three
+kept. The original model binaries are not modified:
+
+| File | SHA-256 |
+|---|---|
+| `app/app/src/main/assets/model.tflite` | `FCEC1F25F20D26C376E9516247443800439E14B8D1591320657D51311DE12FFC` |
+| `model/model.tflite` | `B474111E96743F83427660313C1EFD05520A0B6B647FCDE5B4B4638D2A37B420` |
+| `model/model.onnx` | `85EDB8E57E31560F278592B791C21B0AF8D054A6762DDF5493A5978FB5C57639` |
+| `model/export/model.onnx` | `85EDB8E57E31560F278592B791C21B0AF8D054A6762DDF5493A5978FB5C57639` |
+| `assets/model.tflite` | `FCEC1F25F20D26C376E9516247443800439E14B8D1591320657D51311DE12FFC` |
+
+Validate these values on Windows with:
+
+```powershell
+Get-FileHash app\app\src\main\assets\model.tflite -Algorithm SHA256
+Get-FileHash model\model.tflite -Algorithm SHA256
+Get-FileHash model\model.onnx -Algorithm SHA256
+Get-FileHash model\export\model.onnx -Algorithm SHA256
+Get-FileHash assets\model.tflite -Algorithm SHA256
+```
+
+### Checks
+
+```powershell
+npm run typecheck
+npm run lint
+```
+
+The TFLite runtime is intentionally a native EAS/development-build dependency;
+Expo Go cannot load it. Camera permission, image selection, SQLite history, and
+localization are handled by the React Native app.
+
 
 [![Android AGP](https://img.shields.io/badge/AGP-8.9.0-brightgreen.svg)](https://developer.android.com/studio/releases/gradle-plugin)
 [![Compile SDK](https://img.shields.io/badge/Compile%20SDK-35-blue.svg)](https://developer.android.com/about/versions/15)
