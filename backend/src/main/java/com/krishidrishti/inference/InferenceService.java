@@ -29,12 +29,22 @@ public class InferenceService implements AutoCloseable {
     }
 
     public List<Prediction> predict(MultipartFile upload) throws IOException, OrtException {
-        if (upload.isEmpty() || upload.getSize() > 10_000_000) throw new IllegalArgumentException("Image must be non-empty and no larger than 10 MB.");
+        if (upload == null || upload.isEmpty()) throw new IllegalArgumentException("Image must be non-empty.");
+        if (upload.getSize() > 10_000_000) throw new IllegalArgumentException("Image must be no larger than 10 MB.");
+        String contentType = upload.getContentType();
+        if (contentType != null && !List.of("image/png", "image/jpeg").contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException("Only PNG and JPG images are supported.");
+        }
         BufferedImage source = ImageIO.read(upload.getInputStream());
         if (source == null) throw new IllegalArgumentException("The uploaded file is not a supported image.");
         BufferedImage image = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
-        graphics.drawImage(source, 0, 0, SIZE, SIZE, null);
+        double scale = Math.max((double) SIZE / source.getWidth(), (double) SIZE / source.getHeight());
+        int width = (int) Math.ceil(source.getWidth() * scale);
+        int height = (int) Math.ceil(source.getHeight() * scale);
+        int offsetX = (SIZE - width) / 2;
+        int offsetY = (SIZE - height) / 2;
+        graphics.drawImage(source, offsetX, offsetY, width, height, null);
         graphics.dispose();
         float[] input = new float[3 * SIZE * SIZE];
         for (int y = 0; y < SIZE; y++) for (int x = 0; x < SIZE; x++) {
@@ -49,6 +59,7 @@ public class InferenceService implements AutoCloseable {
              OrtSession.Result result = session.run(Map.of(inputName, tensor))) {
             Object value = result.get(0).getValue();
             float[] logits = flatten(value);
+            if (logits.length == 0) throw new IllegalStateException("The model returned no prediction scores.");
             float maxLogit = logits[0];
             for (int i = 1; i < logits.length; i++) {
                 if (logits[i] > maxLogit) maxLogit = logits[i];
@@ -68,7 +79,17 @@ public class InferenceService implements AutoCloseable {
 
     private static float normalize(int channel, float mean, float std) { return (channel / 255f - mean) / std; }
     private static int argmax(double[] values) { int index = 0; for (int i = 1; i < values.length; i++) if (values[i] > values[index]) index = i; return index; }
-    private static float[] flatten(Object value) { if (value instanceof float[][] matrix) return matrix[0]; if (value instanceof float[] vector) return vector; throw new IllegalStateException("Unsupported model output tensor."); }
+    private static float[] flatten(Object value) {
+        if (value instanceof float[][] matrix && matrix.length > 0) return matrix[0];
+        if (value instanceof float[][][] matrix && matrix.length > 0 && matrix[0].length > 0) return matrix[0][0];
+        if (value instanceof float[] vector) return vector;
+        if (value instanceof double[] vector) {
+            float[] result = new float[vector.length];
+            for (int i = 0; i < vector.length; i++) result[i] = (float) vector[i];
+            return result;
+        }
+        throw new IllegalStateException("Unsupported model output tensor: " + value.getClass().getName());
+    }
     @Override public void close() throws OrtException { session.close(); }
     public record Prediction(int index, String crop, String disease, double confidence) {}
 }

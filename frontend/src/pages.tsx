@@ -29,8 +29,9 @@ export function ScanPage() {
       }
       setResult((await predictImage(file)).predictions);
     } catch (requestError) {
-      if (requestError instanceof Error && "response" in requestError) {
-        setError("The inference API rejected this image. Check that it is a supported PNG or JPG leaf photo.");
+      if (requestError && typeof requestError === "object" && "response" in requestError) {
+        const response = (requestError as { response?: { data?: { error?: string } } }).response;
+        setError(response?.data?.error || "The inference API rejected this image.");
       } else {
         setError("The inference API could not be reached. Check the deployed backend URL and try again.");
       }
