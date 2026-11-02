@@ -59,16 +59,9 @@ variable `VITE_API_URL`, then redeploy the frontend. The confirmed production
 frontend is `https://krishidrishti-ai-beta.vercel.app/`. Set the backend
 `CORS_ORIGIN` to that Vercel URL and any required preview URL, separated by
 commas.
-The backend database variables are `DATABASE_URL`,
-`DATABASE_USERNAME`, and `DATABASE_PASSWORD`. `DATABASE_URL` must be the full
-JDBC PostgreSQL URL beginning with `jdbc:postgresql://`, for example:
-
-```text
-jdbc:postgresql://dpg-example-a.oregon-postgres.render.com:5432/krishi_drishti
-```
-
-Do not paste Render’s `postgres://` or `postgresql://` connection string
-directly into `DATABASE_URL`; Spring Boot requires the `jdbc:` prefix.
+The backend database variables are `DATABASE_HOST`, `DATABASE_PORT`,
+`DATABASE_NAME`, `DATABASE_USERNAME`, and `DATABASE_PASSWORD`. The checked-in
+Render Blueprint provisions the database and injects these values automatically.
 
 ### Frontend
 

@@ -2,7 +2,7 @@ server:
   port: ${PORT:8080}
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/krishi_drishti}
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:krishi_drishti}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:postgres}
     hikari:

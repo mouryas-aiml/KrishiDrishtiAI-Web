@@ -1,3 +1,9 @@
+databases:
+  - name: krishi-drishti-db
+    plan: free
+    databaseName: krishi_drishti
+    user: krishi_drishti
+
 services:
   - type: web
     name: krishi-drishti-api
@@ -7,12 +13,26 @@ services:
     plan: free
     healthCheckPath: /api/health
     envVars:
-      - key: DATABASE_URL
-        sync: false
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: krishi-drishti-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: krishi-drishti-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: krishi-drishti-db
+          property: database
       - key: DATABASE_USERNAME
-        sync: false
+        fromDatabase:
+          name: krishi-drishti-db
+          property: user
       - key: DATABASE_PASSWORD
-        sync: false
+        fromDatabase:
+          name: krishi-drishti-db
+          property: password
       - key: MODEL_PATH
         value: /app/model/model.onnx
       - key: CORS_ORIGIN
