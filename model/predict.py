@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     # Model
     model = make_model(cfg, num_classes)
-    model.load_state_dict(torch.load("F:\\nis\Codes\ANDROID PROJECTs\PlantAi\model\log\plant_ai_resnet18_96\latest_model.pth"))
+    model.load_state_dict(torch.load(os.environ.get("MODEL_WEIGHTS", "model/log/plant_ai_resnet18_96/latest_model.pth")))
     image_names = ["apple_black_rot.jpeg", "apple_health.jpeg", "apple_scrab.jpeg", "corn_Nleaf_blight.jpeg",
                    "potato_early_blight.jpeg", "potato_health.jpeg", "tomato_spider.jpeg"]
     image_path = "data/example/"

@@ -13,7 +13,7 @@ os.chdir(parent_dir)
 print("Working directory:", os.getcwd())
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="PyTorch → ONNX Export Script")
+    parser = argparse.ArgumentParser(description="PyTorch to ONNX export script")
     parser.add_argument("--config_file", default="config/plantai_resnet_18.yaml", help="Path to config file", type=str)
     parser.add_argument("opts", help="Modify config options via command-line", default=None, nargs=argparse.REMAINDER)
     parser.add_argument("--local_rank", default=0, type=int)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
         opset_version=11
     )
-    print("✅ Exported model to ONNX")
+    print("Exported model to ONNX")
 
     # Optional ONNX inference test
     session = onnxruntime.InferenceSession("model.onnx")

@@ -40,4 +40,4 @@ if __name__ == "__main__":
 
     os.makedirs("export", exist_ok=True)
     traced_script_module_optimized._save_for_lite_interpreter("export/model.ptl")
-    print("✅ TorchScript model saved to: export/model.ptl")
+    print("TorchScript model saved to: export/model.ptl")

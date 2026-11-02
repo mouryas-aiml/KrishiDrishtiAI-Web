@@ -86,10 +86,10 @@ def convert_to_tflite(saved_model_dir: str, tflite_path: str) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert PyTorch model to TFLite for Android")
+    parser = argparse.ArgumentParser(description="Convert PyTorch model to TFLite")
     parser.add_argument(
         "--config_file",
-        default=r"D:\Code\android\PlantAi\model\config\plantai_resnet_18.yaml",
+        default="config/plantai_resnet_18.yaml",
         help="Path to the configuration YAML used by PlantAI",
     )
     parser.add_argument(
@@ -128,7 +128,7 @@ def main():
     # Step 1: Export to ONNX
     onnx_path = "temp_model.onnx"
     export_pytorch_to_onnx(model, onnx_path)
-    print(f"✅ Exported PyTorch model to ONNX: {onnx_path}")
+    print(f"Exported PyTorch model to ONNX: {onnx_path}")
 
     # Step 2: Convert ONNX → TensorFlow
     tf_model_dir = "temp_saved_model"
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     import torch
 
     # Load the TFLite model
-    interpreter = tf.lite.Interpreter(model_path=r"D:\Code\android\PlantAi\model\export\model.tflite")
+    interpreter = tf.lite.Interpreter(model_path="model.tflite")
     interpreter.allocate_tensors()
 
     # Get input details
