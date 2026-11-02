@@ -2,7 +2,7 @@ import { ChangeEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, BarChart3, CheckCircle2, FileScan, ImagePlus, Leaf, MessageCircle, Search, Send, ShieldCheck, Sprout, TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { predictImage, Prediction } from "./api";
+import { apiBaseUrl, getApiConfigurationError, predictImage, Prediction } from "./api";
 
 const crops = ["Apple", "Blueberry", "Cherry", "Corn", "Grape", "Orange", "Peach", "Pepper", "Potato", "Raspberry", "Soybean", "Squash", "Strawberry", "Tomato"];
 const activity = [{ crop: "Tomato", disease: "Early blight", confidence: "94.2%", date: "Today, 09:42" }, { crop: "Grape", disease: "Healthy", confidence: "91.8%", date: "Yesterday, 16:20" }, { crop: "Potato", disease: "Late blight", confidence: "88.4%", date: "12 Mar, 11:05" }];
@@ -21,7 +21,20 @@ export function ScanPage() {
   async function onFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]; if (!file) return;
     setError(""); setResult(null); setLoading(true);
-    try { setResult((await predictImage(file)).predictions); } catch { setError("The inference API could not be reached. Start the backend and try again."); } finally { setLoading(false); }
+    try {
+      const configurationError = getApiConfigurationError();
+      if (configurationError) {
+        setError(configurationError);
+        return;
+      }
+      setResult((await predictImage(file)).predictions);
+    } catch (requestError) {
+      if (requestError instanceof Error && "response" in requestError) {
+        setError("The inference API rejected this image. Check that it is a supported PNG or JPG leaf photo.");
+      } else {
+        setError("The inference API could not be reached. Check the deployed backend URL and try again.");
+      }
+    } finally { setLoading(false); }
   }
   return <section className="page-grid"><div className="scan-intro"><div><p className="eyebrow">Image diagnosis</p><h2>Upload a clear leaf photo</h2><p className="muted">The image is sent to the configured Java inference API. Predictions are never fabricated in the browser.</p></div><div className="contract-pill"><CheckCircle2 size={16} /> 224 × 224 preprocessing contract</div></div><label className="upload-card"><ImagePlus size={38} /><strong>{loading ? "Analyzing image..." : "Choose a leaf image"}</strong><span>PNG or JPG · Use a well-lit, centered leaf</span><input type="file" accept="image/png,image/jpeg" onChange={onFile} disabled={loading} /></label>{error && <div className="error-box">{error}</div>}{result && <div className="card results"><div className="section-head"><div><p className="eyebrow">Prediction result</p><h3>Top supported classes</h3></div><FileScan size={22} /></div>{result.map((item) => <div className="prediction" key={item.index}><div><strong>{item.crop}</strong><span>{item.disease}</span></div><strong>{(item.confidence * 100).toFixed(1)}%</strong></div>)}</div>}</section>;
 }
@@ -32,4 +45,4 @@ export function Analytics() { return <section className="page-grid"><div classNa
 
 export function Assistant() { const [message, setMessage] = useState(""); return <section className="assistant-layout"><div className="card assistant-card"><div className="assistant-heading"><span className="icon-box"><MessageCircle size={21} /></span><div><p className="eyebrow">Krishi guide</p><h2>Ask about your crop</h2></div></div><div className="chat-message"><strong>Assistant</strong><p>Ask a crop-care question. Connect the assistant service to receive verified, field-specific guidance.</p></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); setMessage(""); }}><input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="How can I help with your crop?" /><button className="button" aria-label="Send message"><Send size={17} /></button></form></div><div className="card"><p className="eyebrow">Suggested topics</p><div className="topic-list"><span>Leaf spot prevention</span><span>Safe field scouting</span><span>When to rescan</span></div></div></section>; }
 
-export function SettingsPage() { return <section className="page-grid"><div className="card settings-card"><p className="eyebrow">Workspace settings</p><h2>Preferences</h2><label>Display language<select><option>English</option><option>Kannada</option><option>Hindi (planned)</option><option>Marathi (planned)</option><option>Tamil (planned)</option><option>Telugu (planned)</option></select></label><label>API environment<input value={import.meta.env.VITE_API_URL || "http://localhost:8080/api"} readOnly /></label><div className="info-box"><ShieldCheck size={18} /><span>Model files are preserved outside the frontend bundle and inference is handled by the backend.</span></div></div></section>; }
+export function SettingsPage() { return <section className="page-grid"><div className="card settings-card"><p className="eyebrow">Workspace settings</p><h2>Preferences</h2><label>Display language<select><option>English</option><option>Kannada</option><option>Hindi (planned)</option><option>Marathi (planned)</option><option>Tamil (planned)</option><option>Telugu (planned)</option></select></label><label>API environment<input value={apiBaseUrl} readOnly /></label><div className="info-box"><ShieldCheck size={18} /><span>Model files are preserved outside the frontend bundle and inference is handled by the backend.</span></div></div></section>; }
