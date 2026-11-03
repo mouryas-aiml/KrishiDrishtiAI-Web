@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const isBrowser = typeof window !== "undefined";
+const API_CLIENT_VERSION = "2026-11-03-inference-fix";
 const isLocalhost = isBrowser && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
 // Determine the API URL safely:
@@ -16,6 +17,7 @@ if (isBrowser && !isLocalhost) {
 }
 
 export const apiBaseUrl = targetApiUrl;
+export { API_CLIENT_VERSION };
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
