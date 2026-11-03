@@ -34,6 +34,6 @@ services:
           name: krishi-drishti-db
           property: password
       - key: MODEL_PATH
-        value: /app/model/model.tflite
+        value: /app/model/model.onnx
       - key: CORS_ORIGIN
         sync: false

@@ -1,18 +1,18 @@
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-
-WORKDIR /workspace
-COPY backend/pom.xml backend/pom.xml
-COPY backend/src backend/src
-RUN mvn -f backend/pom.xml -DskipTests package
-
-FROM eclipse-temurin:21-jre
-
+FROM node:22-slim AS build
 WORKDIR /app
+COPY package*.json tsconfig.json ./
+RUN npm ci
+COPY src ./src
+RUN npm run build
 
-COPY --from=build /workspace/backend/target/krishi-drishti-api-1.0.0.jar app.jar
-COPY --from=build /workspace/backend/target/tensorflow-lite/jni/x86_64/libtensorflowlite_jni.so /app/native/libtensorflowlite_jni.so
-COPY model/model.tflite /app/model/model.tflite
+FROM node:22-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY --from=build /app/dist ./dist
 
+ENV PORT=8080
+ENV NODE_ENV=production
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Duser.timezone=UTC", "-Djava.library.path=/app/native", "-jar", "app.jar"]
+CMD ["node", "dist/index.js"]
