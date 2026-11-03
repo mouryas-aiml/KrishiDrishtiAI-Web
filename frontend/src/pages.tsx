@@ -326,10 +326,14 @@ export function ScanPage({ language = "English", user }: { language?: string; us
     setSelectedSample(sample.name);
     try {
       const res = await fetch(sample.file);
+      if (!res.ok) {
+        throw new Error(`Sample image request failed with HTTP ${res.status}.`);
+      }
       const blob = await res.blob();
       handleFile(blob, sample.file);
     } catch (err) {
-      setError("Unable to load sample image.");
+      console.error("Unable to load sample image:", err);
+      setError("Unable to load sample image. Use Upload Leaf Image instead.");
     }
   }
 

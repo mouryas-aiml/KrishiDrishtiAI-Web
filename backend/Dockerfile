@@ -10,6 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
+COPY model/model.onnx ./model/model.onnx
 
 ENV PORT=8080
 ENV NODE_ENV=production

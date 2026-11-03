@@ -19,7 +19,7 @@ export const apiBaseUrl = targetApiUrl;
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 10000,
+  timeout: 120000,
   withCredentials: true,
 });
 
@@ -137,6 +137,7 @@ export async function predictImage(file: File | Blob, notes?: string): Promise<{
 
   const response = await api.post<{ predictions: Prediction[]; scan?: Scan }>("/predictions", form, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
   });
   if (!response.data.predictions?.length) {
     throw new Error("The inference service returned no predictions.");
