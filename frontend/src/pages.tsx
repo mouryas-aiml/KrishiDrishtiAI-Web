@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -6,6 +6,7 @@ import {
   BarChart3,
   CheckCircle2,
   CloudSun,
+  Edit3,
   FileScan,
   FlaskConical,
   HelpCircle,
@@ -14,8 +15,11 @@ import {
   Leaf,
   Loader2,
   MessageCircle,
+  Mic,
+  MicOff,
   Pill,
   RefreshCw,
+  Save,
   Search,
   Send,
   ShieldAlert,
@@ -24,6 +28,8 @@ import {
   Sprout,
   Trash2,
   TrendingUp,
+  Volume2,
+  VolumeX,
   X
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -35,12 +41,14 @@ import {
   getCrops,
   getScans,
   predictImage,
+  updateScanNotes,
   CropCatalogItem,
   Prediction,
-  Scan
+  Scan,
+  User
 } from "./api";
 
-// Fallback crop catalog so the catalog works immediately even before network fetch
+// Fallback crop catalog so the catalog works immediately
 const defaultCrops = [
   "Apple", "Blueberry", "Cherry", "Corn", "Grape", "Orange",
   "Peach", "Pepper", "Potato", "Raspberry", "Soybean", "Squash",
@@ -48,13 +56,35 @@ const defaultCrops = [
 ];
 
 const sampleLeaves = [
-  { name: "Tomato Early Blight", file: "/samples/tomato_early_blight.png", crop: "Tomato", hint: "Concentric target spots" },
-  { name: "Potato Late Blight", file: "/samples/potato_late_blight.png", crop: "Potato", hint: "Dark water-soaked blotches" },
-  { name: "Apple Scab", file: "/samples/apple_scab.png", crop: "Apple", hint: "Olive-brown velvety spots" },
-  { name: "Healthy Leaf", file: "/samples/healthy_leaf.png", crop: "General", hint: "Clean unblemished tissue" },
+  { name: "Tomato Late Blight", file: "/samples/tomato_late_blight.png", crop: "Tomato", hint: "Water-soaked dark lesions" },
+  { name: "Apple Cedar Rust", file: "/samples/apple_cedar_rust.png", crop: "Apple", hint: "Bright orange rust pustules" },
+  { name: "Corn Common Rust", file: "/samples/corn_common_rust.png", crop: "Corn", hint: "Raised powdery brown pustules" },
+  { name: "Apple Healthy Leaf", file: "/samples/apple_healthy.png", crop: "Apple", hint: "Clean vigorous leaf tissue" },
 ];
 
-export function Dashboard() {
+// Speech Helper Utilities
+function getLanguageLocale(language: string): string {
+  if (language.toLowerCase().includes("kan")) return "kn-IN";
+  if (language.toLowerCase().includes("hin")) return "hi-IN";
+  return "en-IN";
+}
+
+function speakText(text: string, language: string = "English", onEnd?: () => void): boolean {
+  if (!("speechSynthesis" in window)) {
+    alert("Speech synthesis is not supported on this browser.");
+    return false;
+  }
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/[#*`_\[\]]/g, " ").trim();
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.lang = getLanguageLocale(language);
+  utterance.rate = 0.95;
+  if (onEnd) utterance.onend = onEnd;
+  window.speechSynthesis.speak(utterance);
+  return true;
+}
+
+export function Dashboard({ language = "English", user }: { language?: string; user?: User | null }) {
   const [scans, setScans] = useState<Scan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,10 +105,10 @@ export function Dashboard() {
       <div className="hero-card">
         <div>
           <p className="eyebrow light">AI Crop Health Workspace</p>
-          <h2>Make every scan a better decision.</h2>
+          <h2>{user ? `Welcome back, ${user.name}` : "Make every scan a better decision."}</h2>
           <p>
             Screen leaf health in real-time with the Krishi Drishti deep learning model.
-            Get instant organic treatment protocols, chemical dosages, and prevention tips.
+            Get instant organic treatment protocols, chemical dosages, and voice assistance.
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <Link className="button button-light" to="/scan">
@@ -98,17 +128,22 @@ export function Dashboard() {
         <div className="stat-card">
           <p>Total Scans Recorded</p>
           <strong>{totalScans}</strong>
-          <small><TrendingUp size={13} /> {totalScans > 0 ? "Saved in PostgreSQL database" : "Ready for your first scan"}</small>
+          <span>PostgreSQL Active</span>
         </div>
         <div className="stat-card">
-          <p>Healthy Foliage Ratio</p>
+          <p>Healthy Tissue Ratio</p>
           <strong>{healthyRatio}%</strong>
-          <small><CheckCircle2 size={13} /> Across verified field scans</small>
+          <span>{healthyCount} healthy scans</span>
         </div>
         <div className="stat-card">
-          <p>Model Diagnosis Classes</p>
-          <strong>39</strong>
-          <small><Leaf size={13} /> 14 crops supported</small>
+          <p>Model Engine</p>
+          <strong>ONNX 224</strong>
+          <span>MobileNet / ResNet</span>
+        </div>
+        <div className="stat-card">
+          <p>Language & Voice</p>
+          <strong>{language}</strong>
+          <span>Speech Enabled</span>
         </div>
       </div>
 
@@ -116,37 +151,36 @@ export function Dashboard() {
         <div className="card">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Recent Activity</p>
-              <h3>Field Observations</h3>
+              <p className="eyebrow">Audit Stream</p>
+              <h3>Recent Field Diagnoses</h3>
             </div>
             <Link to="/analytics" className="text-link">
-              View Analytics <ArrowUpRight size={15} />
+              View all <ArrowUpRight size={15} />
             </Link>
           </div>
 
           {loading ? (
-            <div style={{ padding: "30px", textAlign: "center", color: "#6b8879" }}>
-              <Loader2 className="animate-spin" size={24} style={{ margin: "auto" }} />
-              <p style={{ fontSize: "13px", marginTop: "8px" }}>Loading observations from database...</p>
+            <div style={{ padding: "40px 0", textAlign: "center" }}>
+              <Loader2 className="animate-spin" size={24} style={{ color: "#1e6b4d", margin: "auto" }} />
+              <p className="muted" style={{ marginTop: "10px" }}>Loading scan records...</p>
             </div>
           ) : recentObservations.length === 0 ? (
-            <div style={{ padding: "35px 20px", textAlign: "center", color: "#6b8879" }}>
-              <FileScan size={36} style={{ margin: "auto", opacity: 0.6 }} />
-              <p style={{ margin: "10px 0 15px", fontSize: "14px" }}>No leaf scans recorded yet.</p>
-              <Link to="/scan" className="button" style={{ fontSize: "13px" }}>
-                Scan your first leaf now
+            <div style={{ padding: "40px 0", textAlign: "center" }}>
+              <p className="muted">No scans recorded yet. Upload a leaf photo to begin.</p>
+              <Link to="/scan" className="button" style={{ marginTop: "12px", display: "inline-flex" }}>
+                Scan first leaf
               </Link>
             </div>
           ) : (
             <div className="activity-list">
               {recentObservations.map((item) => (
-                <div className="activity-row" key={item.id}>
-                  <span className={`crop-avatar ${item.disease.toLowerCase() === "healthy" ? "healthy-avatar" : "disease-avatar"}`}>
-                    <Leaf size={17} />
-                  </span>
-                  <div>
-                    <strong>{item.crop}</strong>
-                    <p>{item.disease}</p>
+                <div key={item.id} className="activity-item">
+                  <div className="activity-main">
+                    <span className={`status-dot-badge ${item.disease.toLowerCase() === "healthy" ? "healthy" : "danger"}`} />
+                    <div>
+                      <strong>{item.crop} — {item.disease}</strong>
+                      {item.notes && <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#5d786a" }}>Note: {item.notes}</p>}
+                    </div>
                   </div>
                   <div className="activity-meta">
                     <strong>{(item.confidence * 100).toFixed(1)}%</strong>
@@ -178,16 +212,20 @@ export function Dashboard() {
   );
 }
 
-export function ScanPage() {
+export function ScanPage({ language = "English", user }: { language?: string; user?: User | null }) {
   const [result, setResult] = useState<Prediction[] | null>(null);
+  const [savedScan, setSavedScan] = useState<Scan | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedSample, setSelectedSample] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [speaking, setSpeaking] = useState(false);
 
   async function handleFile(file: File | Blob, previewUrl?: string) {
     setError("");
     setResult(null);
+    setSavedScan(null);
     setLoading(true);
     if (previewUrl) {
       setPreview(previewUrl);
@@ -196,8 +234,9 @@ export function ScanPage() {
     }
 
     try {
-      const response = await predictImage(file);
+      const response = await predictImage(file, notes);
       setResult(response.predictions);
+      if (response.scan) setSavedScan(response.scan);
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to analyze leaf image.";
       setError(msg);
@@ -225,6 +264,22 @@ export function ScanPage() {
     }
   }
 
+  function toggleVoiceReadout() {
+    if (speaking) {
+      window.speechSynthesis?.cancel();
+      setSpeaking(false);
+      return;
+    }
+    if (!result || result.length === 0) return;
+    const top = result[0];
+    const textToRead = top.isHealthy
+      ? `${top.crop} leaf is healthy. High vitality detected with ${(top.confidence * 100).toFixed(0)} percent confidence.`
+      : `${top.crop} plant affected by ${top.disease}. Severity is ${top.severity}. Symptoms: ${top.symptoms}. Recommended organic treatment: ${top.organicTreatment}.`;
+
+    const started = speakText(textToRead, language, () => setSpeaking(false));
+    if (started) setSpeaking(true);
+  }
+
   const topPrediction = result?.[0];
 
   return (
@@ -234,19 +289,35 @@ export function ScanPage() {
           <p className="eyebrow">Real-time Image Diagnosis</p>
           <h2>Upload or Choose a Crop Leaf</h2>
           <p className="muted">
-            The image is processed using 256×256 RGB normalization and evaluated by our deep learning ONNX model.
+            The image is normalized to 224x224 RGB and evaluated by our ONNX 39-class crop vision model.
           </p>
         </div>
         <div className="contract-pill">
-          <CheckCircle2 size={16} /> ONNX 256 × 256 Active
+          <CheckCircle2 size={16} /> ONNX 224x224 Model Active
+        </div>
+      </div>
+
+      {/* Field Notes Input */}
+      <div className="card" style={{ padding: "14px 20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          <Edit3 size={17} style={{ color: "#1a5e42" }} />
+          <strong>Field Notes / Observation:</strong>
+          <input
+            type="text"
+            className="form-input"
+            style={{ flex: 1, minWidth: "220px", padding: "8px 12px" }}
+            placeholder="e.g. Plot North-B, row 3, 20% leaf coverage affected"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
         </div>
       </div>
 
       {/* Sample Leaf Quick Selector */}
       <div className="card sample-card">
-        <p className="eyebrow">Quick Test Samples</p>
+        <p className="eyebrow">Verified Test Leaves</p>
         <p style={{ fontSize: "13px", color: "#5d786a", margin: "4px 0 12px" }}>
-          Don't have a leaf image right now? Click any sample to run an instant diagnosis:
+          Click any verified field sample below to run an instant diagnosis:
         </p>
         <div className="sample-grid">
           {sampleLeaves.map((sample) => (
@@ -315,9 +386,20 @@ export function ScanPage() {
               <span className={`status-badge ${topPrediction.isHealthy ? "healthy" : topPrediction.severity}`}>
                 {topPrediction.isHealthy ? "Healthy Foliage" : `${topPrediction.severity.toUpperCase()} SEVERITY`}
               </span>
-              <span className="confidence-pill">
-                {(topPrediction.confidence * 100).toFixed(1)}% Match
-              </span>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <span className="confidence-pill">
+                  {(topPrediction.confidence * 100).toFixed(1)}% Match
+                </span>
+                <button
+                  type="button"
+                  className={`audio-speaker-btn ${speaking ? "speaking" : ""}`}
+                  onClick={toggleVoiceReadout}
+                  title="Listen to diagnosis and advice aloud"
+                >
+                  {speaking ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                  {speaking ? "Stop Audio" : "Listen Advice"}
+                </button>
+              </div>
             </div>
 
             <div className="disease-title-row">
@@ -396,7 +478,7 @@ export function ScanPage() {
   );
 }
 
-export function Crops() {
+export function Crops({ language = "English" }: { language?: string }) {
   const [catalog, setCatalog] = useState<CropCatalogItem[]>([]);
   const [query, setQuery] = useState("");
   const [selectedCrop, setSelectedCrop] = useState<CropCatalogItem | null>(null);
@@ -408,65 +490,74 @@ export function Crops() {
         setCatalog(data);
         if (data.length > 0) setSelectedCrop(data[0]);
       })
-      .catch((err) => {
-        console.warn("Could not load backend crops, using defaults:", err);
+      .catch(() => {
+        const dummy: CropCatalogItem[] = defaultCrops.map(name => ({
+          crop: name,
+          totalClasses: 3,
+          diseases: [
+            {
+              disease: "Healthy",
+              isHealthy: true,
+              severity: "low",
+              symptoms: "Normal color and vigor.",
+              organicTreatment: "Regular watering.",
+              chemicalTreatment: "None.",
+              prevention: "Standard fertilization."
+            }
+          ]
+        }));
+        setCatalog(dummy);
+        setSelectedCrop(dummy[0]);
       })
       .finally(() => setLoading(false));
   }, []);
 
   const filteredCrops = catalog.filter((c) =>
-    c.crop.toLowerCase().includes(query.toLowerCase()) ||
-    c.diseases.some((d) => d.disease.toLowerCase().includes(query.toLowerCase()))
+    c.crop.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <section className="page-grid">
-      <div className="section-head">
-        <div>
-          <p className="eyebrow">Verified Model Metadata</p>
-          <h2>Crop & Disease Library</h2>
-        </div>
-        <span className="count-badge">{catalog.length || defaultCrops.length} Crops Supported</span>
-      </div>
-
-      <div className="search-field">
-        <Search size={18} />
-        <input
-          placeholder="Search crop or disease (e.g. Tomato, Early Blight, Apple Scab)..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
-
       <div className="crop-library-layout">
-        {/* Left Column: Crop List */}
-        <div className="crop-grid-vertical">
-          {filteredCrops.map((item) => (
-            <div
-              key={item.crop}
-              className={`crop-card-selectable ${selectedCrop?.crop === item.crop ? "active" : ""}`}
-              onClick={() => setSelectedCrop(item)}
-            >
-              <span className="crop-avatar"><Leaf size={19} /></span>
-              <div style={{ flex: 1 }}>
-                <strong>{item.crop}</strong>
-                <p>{item.diseases.length} disease classes</p>
-              </div>
-              <ArrowUpRight size={16} />
-            </div>
-          ))}
+        <div className="crop-nav-panel">
+          <div className="search-bar">
+            <Search size={16} />
+            <input
+              type="text"
+              placeholder="Search crop (e.g. Tomato)..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="crop-grid-vertical">
+            {filteredCrops.map((c) => (
+              <button
+                key={c.crop}
+                className={`crop-nav-item ${selectedCrop?.crop === c.crop ? "active" : ""}`}
+                onClick={() => setSelectedCrop(c)}
+              >
+                <div>
+                  <strong>{c.crop}</strong>
+                  <small>{c.diseases?.length || 0} classes</small>
+                </div>
+                <ArrowUpRight size={15} />
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Right Column: Detailed Disease Cards for Selected Crop */}
-        <div className="crop-detail-panel">
+        <div className="crop-details-panel">
           {selectedCrop ? (
             <div>
-              <div className="card" style={{ marginBottom: "16px" }}>
-                <p className="eyebrow">Crop Profile</p>
-                <h3 style={{ fontSize: "26px", margin: "4px 0 8px" }}>{selectedCrop.crop} Health Guide</h3>
-                <p className="muted" style={{ margin: 0 }}>
-                  Showing all {selectedCrop.diseases.length} verified classes and their agricultural management protocols.
-                </p>
+              <div className="card crop-header-card">
+                <div>
+                  <p className="eyebrow">Species Profile</p>
+                  <h2>{selectedCrop.crop} Health Guide</h2>
+                  <p className="muted">
+                    Displaying symptoms, organic and chemical controls for {selectedCrop.diseases.length} condition(s).
+                  </p>
+                </div>
               </div>
 
               <div className="disease-cards-stack">
@@ -486,15 +577,24 @@ export function Crops() {
                     {!d.isHealthy && (
                       <div className="treatment-mini-grid">
                         <div className="mini-treatment organic">
-                          <strong>🌿 Organic Remedy:</strong>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                            <Leaf size={15} />
+                            <strong>Organic Remedy:</strong>
+                          </div>
                           <p>{d.organicTreatment}</p>
                         </div>
                         <div className="mini-treatment chemical">
-                          <strong>🧪 Chemical Spray:</strong>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                            <FlaskConical size={15} />
+                            <strong>Chemical Spray:</strong>
+                          </div>
                           <p>{d.chemicalTreatment}</p>
                         </div>
                         <div className="mini-treatment prevention">
-                          <strong>🛡️ Prevention:</strong>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                            <ShieldCheck size={15} />
+                            <strong>Prevention:</strong>
+                          </div>
                           <p>{d.prevention}</p>
                         </div>
                       </div>
@@ -514,115 +614,156 @@ export function Crops() {
   );
 }
 
-export function Analytics() {
+export function Analytics({ language = "English" }: { language?: string }) {
   const [scans, setScans] = useState<Scan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editNoteText, setEditNoteText] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
 
-  function reloadScans() {
+  useEffect(() => {
+    loadScans();
+  }, []);
+
+  function loadScans() {
     setLoading(true);
     getScans()
       .then((data) => setScans(data))
-      .catch((err) => console.warn(err))
+      .catch((err) => console.warn("Failed to load scans:", err))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    reloadScans();
-  }, []);
-
   async function handleDelete(id: string) {
-    if (confirm("Delete this scan observation from records?")) {
+    if (!window.confirm("Are you sure you want to delete this scan record?")) return;
+    try {
       await deleteScan(id);
-      reloadScans();
+      setScans((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      alert("Failed to delete scan record.");
     }
   }
 
-  // Calculate live statistics
-  const total = scans.length;
-  const healthy = scans.filter((s) => s.disease.toLowerCase() === "healthy").length;
-  const healthyRatio = total > 0 ? Math.round((healthy / total) * 100) : 100;
-  const avgConfidence = total > 0 ? (scans.reduce((acc, s) => acc + s.confidence, 0) / total * 100).toFixed(1) : "0.0";
+  function startEditNote(scan: Scan) {
+    setEditingId(scan.id);
+    setEditNoteText(scan.notes || "");
+  }
 
-  // Group by crop for chart
-  const cropCounts: { [crop: string]: number } = {};
+  async function handleSaveNote(id: string) {
+    setSavingNote(true);
+    try {
+      await updateScanNotes(id, editNoteText);
+      setScans(prev => prev.map(s => s.id === id ? { ...s, notes: editNoteText } : s));
+      setEditingId(null);
+    } catch (err) {
+      alert("Failed to update note.");
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
+  // Distribution calculations
+  const cropCounts: Record<string, number> = {};
   scans.forEach((s) => {
     cropCounts[s.crop] = (cropCounts[s.crop] || 0) + 1;
   });
 
-  const chartData = Object.keys(cropCounts).map((crop) => ({
-    name: crop,
-    count: cropCounts[crop]
+  const cropChartData = Object.entries(cropCounts).map(([name, count]) => ({
+    name,
+    count,
   }));
 
-  if (chartData.length === 0) {
-    chartData.push({ name: "Tomato", count: 4 }, { name: "Potato", count: 2 }, { name: "Apple", count: 3 });
-  }
+  const COLORS = ["#1e6b4d", "#2d8a63", "#43a87c", "#68c499", "#94dcba", "#bfead4"];
 
   return (
     <section className="page-grid">
-      <div className="stats-grid">
-        <div className="stat-card">
-          <p>Total Recorded Scans</p>
-          <strong>{total}</strong>
-          <small><TrendingUp size={13} /> Active in database</small>
+      <div className="section-head">
+        <div>
+          <p className="eyebrow">Agronomic Telemetry</p>
+          <h2>Field Scan Analytics & Edit Access</h2>
         </div>
-        <div className="stat-card">
-          <p>Average Confidence</p>
-          <strong>{avgConfidence}%</strong>
-          <small><ShieldCheck size={13} /> High diagnostic certainty</small>
-        </div>
-        <div className="stat-card">
-          <p>Healthy Leaf Ratio</p>
-          <strong>{healthyRatio}%</strong>
-          <small><CheckCircle2 size={13} /> Field health indicator</small>
-        </div>
+        <button onClick={loadScans} className="button button-light" disabled={loading}>
+          <RefreshCw size={16} /> Refresh Records
+        </button>
       </div>
 
-      <div className="card chart-card">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">Diagnostic Breakdown</p>
-            <h3>Scans by Crop Variety</h3>
+      <div className="two-column">
+        <div className="card">
+          <p className="eyebrow">Volume by Crop</p>
+          <h3>Scanned Crop Breakdown</h3>
+          <div style={{ height: "260px", marginTop: "16px" }}>
+            {cropChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={cropChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0ece5" />
+                  <XAxis dataKey="name" stroke="#5d786a" fontSize={12} />
+                  <YAxis stroke="#5d786a" fontSize={12} allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#1e6b4d" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: "grid", placeItems: "center", height: "100%", color: "#6b8879" }}>
+                No scan data recorded yet.
+              </div>
+            )}
           </div>
-          <BarChart3 size={21} />
         </div>
-        <div className="chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid vertical={false} stroke="#e5ebe5" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="count" fill="#1e6b4d" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+
+        <div className="card">
+          <p className="eyebrow">Health Distribution</p>
+          <h3>Healthy vs Diseased Crops</h3>
+          <div style={{ height: "260px", marginTop: "16px" }}>
+            {scans.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: "Healthy", value: scans.filter((s) => s.disease.toLowerCase() === "healthy").length },
+                      { name: "Diseased", value: scans.filter((s) => s.disease.toLowerCase() !== "healthy").length },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label
+                  >
+                    <Cell fill="#1e6b4d" />
+                    <Cell fill="#d9534f" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ display: "grid", placeItems: "center", height: "100%", color: "#6b8879" }}>
+                No scan data recorded yet.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Complete Observation Log */}
+      {/* Audit Log Table with Edit Access */}
       <div className="card">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">Database Records</p>
-            <h3>Complete Observation Journal</h3>
-          </div>
-          <button onClick={reloadScans} className="button button-light" style={{ padding: "6px 12px", fontSize: "12px" }}>
-            <RefreshCw size={14} /> Refresh
-          </button>
-        </div>
+        <p className="eyebrow">Complete History</p>
+        <h3>All Field Observations & Edit Notes</h3>
 
-        {scans.length === 0 ? (
-          <p className="muted" style={{ marginTop: "16px" }}>No scans recorded yet. Perform a scan to view history here.</p>
+        {loading ? (
+          <div style={{ padding: "40px", textAlign: "center" }}>
+            <Loader2 className="animate-spin" size={24} style={{ color: "#1e6b4d", margin: "auto" }} />
+          </div>
+        ) : scans.length === 0 ? (
+          <p className="muted" style={{ padding: "20px 0" }}>No scans found.</p>
         ) : (
-          <div className="history-table-wrapper">
-            <table className="history-table">
+          <div className="table-responsive" style={{ marginTop: "16px" }}>
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>Crop</th>
-                  <th>Identified Condition</th>
+                  <th>Diagnosis</th>
                   <th>Confidence</th>
-                  <th>Timestamp</th>
-                  <th>Action</th>
+                  <th>Field Observation Notes</th>
+                  <th>Date & Time</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -630,11 +771,52 @@ export function Analytics() {
                   <tr key={s.id}>
                     <td><strong>{s.crop}</strong></td>
                     <td>
-                      <span className={`status-badge-inline ${s.disease.toLowerCase() === "healthy" ? "healthy" : "disease"}`}>
+                      <span className={`status-badge ${s.disease.toLowerCase() === "healthy" ? "healthy" : "danger"}`}>
                         {s.disease}
                       </span>
                     </td>
                     <td>{(s.confidence * 100).toFixed(1)}%</td>
+                    <td>
+                      {editingId === s.id ? (
+                        <div className="notes-edit-box">
+                          <input
+                            type="text"
+                            className="notes-edit-input"
+                            value={editNoteText}
+                            onChange={(e) => setEditNoteText(e.target.value)}
+                            placeholder="Add notes..."
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            className="notes-edit-btn"
+                            onClick={() => handleSaveNote(s.id)}
+                            disabled={savingNote}
+                          >
+                            <Save size={13} /> Save
+                          </button>
+                          <button
+                            type="button"
+                            className="notes-edit-btn"
+                            onClick={() => setEditingId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span>{s.notes || <em style={{ color: "#8ca89a" }}>No notes</em>}</span>
+                          <button
+                            type="button"
+                            onClick={() => startEditNote(s)}
+                            className="notes-edit-btn"
+                            title="Edit field notes"
+                          >
+                            <Edit3 size={13} /> Edit
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td>{new Date(s.createdAt).toLocaleString()}</td>
                     <td>
                       <button
@@ -656,16 +838,24 @@ export function Analytics() {
   );
 }
 
-export function Assistant() {
+export function Assistant({ language = "English", user }: { language?: string; user?: User | null }) {
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; text: string }>>([
     {
       role: "assistant",
-      text: "👋 Namaskara! I am the Krishi Drishti Agricultural Assistant. Ask me anything about crop diseases, organic remedies, bio-pesticides, or spray schedules."
+      text: "Namaskara! I am the Krishi Drishti Agricultural Assistant. Ask me anything about crop diseases, organic remedies, bio-pesticides, or spray schedules. You can type or click the microphone to speak."
     }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState("English");
+  const [currentLang, setCurrentLang] = useState(language);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    setCurrentLang(language);
+  }, [language]);
 
   const suggestionChips = [
     "How to treat Tomato Early Blight?",
@@ -673,6 +863,68 @@ export function Assistant() {
     "Potato Late Blight prevention",
     "Best fertilizer schedule for vegetables",
   ];
+
+  function toggleSpeechRecognition() {
+    if (isRecording) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRec) {
+      alert("Voice speech recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRec();
+      recognition.lang = getLanguageLocale(currentLang);
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const spoken = event.results[0][0].transcript;
+        if (spoken) {
+          setInput(spoken);
+          // auto-send question
+          handleSend(spoken);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition error:", event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
+      setIsRecording(false);
+    }
+  }
+
+  function toggleMessageSpeech(text: string, idx: number) {
+    if (speakingIndex === idx) {
+      window.speechSynthesis?.cancel();
+      setSpeakingIndex(null);
+      return;
+    }
+
+    const started = speakText(text, currentLang, () => setSpeakingIndex(null));
+    if (started) setSpeakingIndex(idx);
+  }
 
   async function handleSend(queryText?: string) {
     const textToSend = (queryText || input).trim();
@@ -684,7 +936,7 @@ export function Assistant() {
     setLoading(true);
 
     try {
-      const reply = await askAssistant(textToSend, language);
+      const reply = await askAssistant(textToSend, currentLang);
       setMessages([...newMessages, { role: "assistant", text: reply }]);
     } catch (err) {
       setMessages([
@@ -708,10 +960,10 @@ export function Assistant() {
             <p className="eyebrow">Krishi Drishti Agronomist</p>
             <h2>AI Crop Advisory Chat</h2>
           </div>
-          <div style={{ marginLeft: "auto" }}>
+          <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
             <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={currentLang}
+              onChange={(e) => setCurrentLang(e.target.value)}
               className="lang-select"
             >
               <option value="English">English</option>
@@ -724,7 +976,20 @@ export function Assistant() {
         <div className="chat-thread">
           {messages.map((m, idx) => (
             <div key={idx} className={`chat-message ${m.role === "user" ? "user-msg" : "assistant-msg"}`}>
-              <strong>{m.role === "user" ? "You" : "Krishi Agronomist"}</strong>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong>{m.role === "user" ? (user ? user.name : "You") : "Krishi Agronomist"}</strong>
+                {m.role === "assistant" && (
+                  <button
+                    type="button"
+                    className={`audio-speaker-btn ${speakingIndex === idx ? "speaking" : ""}`}
+                    onClick={() => toggleMessageSpeech(m.text, idx)}
+                    title="Listen response aloud"
+                  >
+                    {speakingIndex === idx ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                    {speakingIndex === idx ? "Stop" : "Listen"}
+                  </button>
+                )}
+              </div>
               <div style={{ whiteSpace: "pre-line", marginTop: "4px" }}>{m.text}</div>
             </div>
           ))}
@@ -757,10 +1022,20 @@ export function Assistant() {
             handleSend();
           }}
         >
+          <button
+            type="button"
+            className={`voice-mic-btn ${isRecording ? "recording" : ""}`}
+            onClick={toggleSpeechRecognition}
+            title={isRecording ? "Listening... Click to stop" : "Speak your question in Kannada, Hindi, or English"}
+          >
+            {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+            {isRecording ? "Listening..." : "Voice"}
+          </button>
+
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about crop health, treatments, or fertilizer..."
+            placeholder={`Ask in ${currentLang} (e.g. Tomato early blight treatment)...`}
             disabled={loading}
           />
           <button className="button" type="submit" disabled={loading || !input.trim()}>
@@ -785,13 +1060,17 @@ export function Assistant() {
             <strong>Crop Rotation:</strong>
             Never plant Solanaceous crops (Tomato, Potato, Pepper) consecutively in the same soil patch.
           </li>
+          <li>
+            <strong>Voice Translation Support:</strong>
+            Speech-to-text recognition and text-to-speech reading are natively built-in for English, Kannada, and Hindi.
+          </li>
         </ul>
       </div>
     </section>
   );
 }
 
-export function Weather() {
+export function Weather({ language = "English" }: { language?: string }) {
   const [humidity, setHumidity] = useState(82);
   const [temp, setTemp] = useState(24);
 
@@ -805,7 +1084,7 @@ export function Weather() {
           <p className="eyebrow light">Microclimate & Disease Early Warning</p>
           <h2>Weather-Driven Plant Health</h2>
           <p>
-            Fungal and bacterial pathogensis correlates strongly with ambient humidity and leaf moisture duration.
+            Fungal and bacterial pathogenesis correlates strongly with ambient humidity and leaf moisture duration.
           </p>
         </div>
         <CloudSun size={80} strokeWidth={1.2} />
@@ -888,10 +1167,11 @@ export function Weather() {
   );
 }
 
-export function SettingsPage() {
+export function SettingsPage({ language = "English", onLanguageChange }: { language?: string; onLanguageChange?: (lang: string) => void }) {
   const [healthStatus, setHealthStatus] = useState<string>("Click 'Test Connection' to check");
   const [latency, setLatency] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
+  const [testAudioStatus, setTestAudioStatus] = useState<string>("");
 
   async function pingApi() {
     setChecking(true);
@@ -909,6 +1189,17 @@ export function SettingsPage() {
     }
   }
 
+  function handleTestAudio() {
+    setTestAudioStatus("Speaking audio...");
+    const phrases: Record<string, string> = {
+      English: "Krishi Drishti crop vision and speech engine is operational.",
+      Kannada: "ಕೃಷಿ ದೃಷ್ಟಿ ಧ್ವನಿ ಮತ್ತು ಬೆಳೆ ರೋಗ ಪತ್ತೆ ವ್ಯವಸ್ಥೆ ಸಿದ್ಧವಾಗಿದೆ.",
+      Hindi: "कृषि दृष्टि फसल रोग पहचान और आवाज प्रणाली तैयार है।"
+    };
+    const phrase = phrases[language] || phrases.English;
+    speakText(phrase, language, () => setTestAudioStatus("Audio playback complete."));
+  }
+
   return (
     <section className="page-grid">
       <div className="card settings-card">
@@ -916,18 +1207,25 @@ export function SettingsPage() {
         <h2>Preferences & Engine Status</h2>
 
         <label>
-          Display Language
-          <select defaultValue="English">
-            <option>English</option>
-            <option>ಕನ್ನಡ (Kannada)</option>
-            <option>हिन्दी (Hindi)</option>
-            <option>मराठी (Marathi - Planned)</option>
-            <option>தமிழ் (Tamil - Planned)</option>
-            <option>తెలుగు (Telugu - Planned)</option>
+          Display & Voice Language
+          <select
+            value={language}
+            onChange={(e) => onLanguageChange && onLanguageChange(e.target.value)}
+          >
+            <option value="English">English</option>
+            <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+            <option value="Hindi">हिन्दी (Hindi)</option>
           </select>
         </label>
 
-        <label>
+        <div style={{ marginTop: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <button type="button" onClick={handleTestAudio} className="audio-speaker-btn">
+            <Volume2 size={16} /> Test Voice Audio
+          </button>
+          {testAudioStatus && <small style={{ color: "#1a5e42" }}>{testAudioStatus}</small>}
+        </div>
+
+        <label style={{ marginTop: "20px" }}>
           Backend API Root
           <input value={apiBaseUrl} readOnly />
         </label>
@@ -946,7 +1244,7 @@ export function SettingsPage() {
         <div className="info-box" style={{ marginTop: "24px" }}>
           <ShieldCheck size={18} />
           <span>
-            The backend has been completely migrated to <strong>Node.js & TypeScript</strong> with native <strong>ONNX Runtime</strong> and PostgreSQL storage. No Java or Maven runtime is required.
+            The backend is completely powered by <strong>Node.js & TypeScript</strong> with native <strong>ONNX Runtime</strong>, PostgreSQL persistence, and browser-native Web Speech API for zero-cost multi-lingual voice translation.
           </span>
         </div>
       </div>

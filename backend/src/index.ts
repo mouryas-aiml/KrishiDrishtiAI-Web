@@ -17,11 +17,10 @@ const corsOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://lo
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl) or matching allowed origins
     if (!origin || corsOrigins.includes(origin) || corsOrigins.includes("*") || origin.startsWith("http://localhost:") || origin.endsWith(".vercel.app")) {
       callback(null, true);
     } else {
-      callback(null, true); // Permissive in development
+      callback(null, true);
     }
   },
   credentials: true,
@@ -62,14 +61,16 @@ app.post("/api/predictions", upload.single("image"), async (req: Request, res: R
       return;
     }
 
+    const notes = req.body.notes || "";
     const predictions = await inference.predict(req.file.buffer);
 
+    let savedScan = null;
     if (predictions.length > 0) {
       const top = predictions[0];
-      await db.saveScan(top.crop, top.disease, top.confidence);
+      savedScan = await db.saveScan(top.crop, top.disease, top.confidence, notes);
     }
 
-    res.json({ predictions });
+    res.json({ predictions, scan: savedScan });
   } catch (err: any) {
     res.status(400).json({ error: err.message || "Failed to process image inference." });
   }
@@ -85,6 +86,22 @@ app.get("/api/scans", async (_req: Request, res: Response, next: NextFunction): 
   }
 });
 
+// Update Scan Notes (Edit Access)
+app.patch("/api/scans/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { notes = "" } = req.body;
+    const updated = await db.updateScanNotes(id, notes);
+    if (!updated) {
+      res.status(404).json({ error: "Scan record not found." });
+      return;
+    }
+    res.json({ success: true, id, notes });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Delete Scan Record
 app.delete("/api/scans/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -93,6 +110,66 @@ app.delete("/api/scans/:id", async (req: Request, res: Response, next: NextFunct
     res.json({ success: deleted });
   } catch (err) {
     next(err);
+  }
+});
+
+// Authentication: Register
+app.post("/api/auth/register", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, contactNumber, password } = req.body;
+    if (!name || !contactNumber || !password) {
+      res.status(400).json({ error: "Name, contact number, and password are required." });
+      return;
+    }
+    const user = await db.registerUser(name, contactNumber, password);
+    res.status(201).json({ user, message: "Registration successful." });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "Registration failed." });
+  }
+});
+
+// Authentication: Login
+app.post("/api/auth/login", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { contactNumber, password } = req.body;
+    if (!contactNumber || !password) {
+      res.status(400).json({ error: "Contact number and password are required." });
+      return;
+    }
+    const user = await db.loginUser(contactNumber, password);
+    res.json({ user, message: "Login successful." });
+  } catch (err: any) {
+    res.status(401).json({ error: err.message || "Login failed." });
+  }
+});
+
+// Authentication: Forgot Password
+app.post("/api/auth/forgot-password", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { contactNumber, newPassword } = req.body;
+    if (!contactNumber || !newPassword) {
+      res.status(400).json({ error: "Contact number and new password are required." });
+      return;
+    }
+    await db.forgotPassword(contactNumber, newPassword);
+    res.json({ success: true, message: "Password updated successfully. You can now log in." });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "Password reset failed." });
+  }
+});
+
+// User Profile: Edit Access
+app.put("/api/auth/profile", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id, name, contactNumber, preferredLanguage } = req.body;
+    if (!id || !name || !contactNumber) {
+      res.status(400).json({ error: "User ID, name, and contact number are required." });
+      return;
+    }
+    const updated = await db.updateUserProfile(id, name, contactNumber, preferredLanguage);
+    res.json({ user: updated, message: "Profile updated successfully." });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message || "Failed to update profile." });
   }
 });
 
@@ -142,7 +219,7 @@ async function startServer() {
   await inference.initialize();
 
   app.listen(port, "0.0.0.0", () => {
-    console.log(`🚀 Krishi Drishti TypeScript API server listening on http://localhost:${port}`);
+    console.log(`[Krishi Drishti] TypeScript API server listening on http://localhost:${port}`);
   });
 }
 
@@ -150,4 +227,3 @@ startServer().catch((err) => {
   console.error("Fatal startup error:", err);
   process.exit(1);
 });
-

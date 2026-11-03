@@ -1133,3 +1133,331 @@ button, input, select {
     grid-template-columns: 1fr;
   }
 }
+
+/* Modal and Dialogs */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 46, 36, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 40px rgba(18, 60, 45, 0.25);
+  overflow: hidden;
+  border: 1px solid #dcece3;
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 20px 24px;
+  background: #f7faf7;
+  border-bottom: 1px solid #e5ede7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #123c2d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-close-btn {
+  background: none;
+  border: 0;
+  color: #5d786a;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn:hover {
+  background: #e6ede8;
+  color: #123c2d;
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5ede7;
+  background: #ffffff;
+}
+
+.modal-tab {
+  flex: 1;
+  padding: 12px 10px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b8879;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.modal-tab:hover {
+  color: #123c2d;
+  background: #fbfdfb;
+}
+
+.modal-tab.active {
+  color: #1a5e42;
+  border-bottom-color: #1a5e42;
+  background: #ffffff;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c4d3e;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #c9dcd0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #17352a;
+  background: #fbfdfb;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus {
+  border-color: #1a5e42;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(26, 94, 66, 0.12);
+}
+
+.form-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  border: 1px solid #bbf7d0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1a5e42;
+  color: #ffffff;
+  border: 0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.form-submit-btn:hover:not(:disabled) {
+  background: #12432e;
+}
+
+.form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Voice & Audio Controls */
+.voice-mic-btn {
+  background: #f0f7f3;
+  border: 1px solid #c5dfd0;
+  color: #1a5e42;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.voice-mic-btn:hover {
+  background: #dff0e6;
+}
+
+.voice-mic-btn.recording {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+  animation: pulseRecording 1.5s infinite;
+}
+
+@keyframes pulseRecording {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.audio-speaker-btn {
+  background: #f2f7f4;
+  border: 1px solid #c9dcd0;
+  color: #1a5e42;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.audio-speaker-btn:hover {
+  background: #dff0e6;
+}
+
+.audio-speaker-btn.speaking {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+/* Scan Note Edit Styles */
+.notes-edit-box {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.notes-edit-input {
+  padding: 4px 8px;
+  border: 1px solid #c0d8cb;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 180px;
+}
+
+.notes-edit-btn {
+  background: #eef6f1;
+  border: 1px solid #b8d6c5;
+  color: #1a5e42;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.notes-edit-btn:hover {
+  background: #d8eee1;
+}
+
+/* Topbar Extras */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lang-selector-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #d5e5db;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #1a5e42;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.lang-selector-pill select {
+  border: 0;
+  background: transparent;
+  color: #17352a;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.auth-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a5e42;
+  color: #ffffff;
+  border: 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(26, 94, 66, 0.2);
+  transition: all 0.15s ease;
+}
+
+.auth-trigger-btn:hover {
+  background: #12432e;
+}
+
+.profile-chip-interactive {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.profile-chip-interactive:hover {
+  transform: translateY(-1px);
+}

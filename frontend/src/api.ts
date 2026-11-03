@@ -29,6 +29,15 @@ export interface Scan {
   crop: string;
   disease: string;
   confidence: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  contactNumber: string;
+  preferredLanguage: string;
   createdAt: string;
 }
 
@@ -59,10 +68,12 @@ export async function checkApiHealth(): Promise<{ status: string; service: strin
   return response.data;
 }
 
-export async function predictImage(file: File | Blob): Promise<{ predictions: Prediction[] }> {
+export async function predictImage(file: File | Blob, notes?: string): Promise<{ predictions: Prediction[]; scan?: Scan }> {
   const form = new FormData();
   form.append("image", file, "leaf_scan.jpg");
-  const response = await api.post<{ predictions: Prediction[] }>("/predictions", form, {
+  if (notes) form.append("notes", notes);
+
+  const response = await api.post<{ predictions: Prediction[]; scan?: Scan }>("/predictions", form, {
     headers: { "Content-Type": "multipart/form-data" }
   });
   return response.data;
@@ -71,6 +82,11 @@ export async function predictImage(file: File | Blob): Promise<{ predictions: Pr
 export async function getScans(): Promise<Scan[]> {
   const response = await api.get<Scan[]>("/scans");
   return response.data;
+}
+
+export async function updateScanNotes(id: string, notes: string): Promise<boolean> {
+  const response = await api.patch<{ success: boolean }>(`/scans/${id}`, { notes });
+  return response.data.success;
 }
 
 export async function deleteScan(id: string): Promise<boolean> {
@@ -86,4 +102,40 @@ export async function getCrops(): Promise<CropCatalogItem[]> {
 export async function askAssistant(message: string, language: string = "English"): Promise<string> {
   const response = await api.post<{ reply: string }>("/chat", { message, language });
   return response.data.reply;
+}
+
+// Authentication APIs
+export async function registerUser(name: string, contactNumber: string, password: string): Promise<User> {
+  const response = await api.post<{ user: User; message: string }>("/auth/register", {
+    name,
+    contactNumber,
+    password,
+  });
+  return response.data.user;
+}
+
+export async function loginUser(contactNumber: string, password: string): Promise<User> {
+  const response = await api.post<{ user: User; message: string }>("/auth/login", {
+    contactNumber,
+    password,
+  });
+  return response.data.user;
+}
+
+export async function forgotPassword(contactNumber: string, newPassword: string): Promise<boolean> {
+  const response = await api.post<{ success: boolean; message: string }>("/auth/forgot-password", {
+    contactNumber,
+    newPassword,
+  });
+  return response.data.success;
+}
+
+export async function updateUserProfile(id: string, name: string, contactNumber: string, preferredLanguage?: string): Promise<User> {
+  const response = await api.put<{ user: User; message: string }>("/auth/profile", {
+    id,
+    name,
+    contactNumber,
+    preferredLanguage,
+  });
+  return response.data.user;
 }

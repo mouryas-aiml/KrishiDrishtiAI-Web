@@ -18,8 +18,8 @@ export interface PredictionResult {
 
 export class InferenceEngine {
   private session: ort.InferenceSession | null = null;
-  private inputName: string = "onnx::Pad_0";
-  private inputSize: number = 256;
+  private inputName: string = "serving_default_input.1";
+  private inputSize: number = 224;
   private modelPath: string;
 
   constructor(customPath?: string) {
@@ -78,10 +78,10 @@ export class InferenceEngine {
     const inputTensor = new ort.Tensor("float32", floatData, [1, 3, size, size]);
     const outputMap = await this.session.run({ [this.inputName]: inputTensor });
 
-    // Output logits: find output tensor '2064' or first output with multiple elements
+    // Output logits: look for 'PartitionedCall' or match output names
     let logits: Float32Array | null = null;
-    if (outputMap["2064"] && outputMap["2064"].data instanceof Float32Array) {
-      logits = outputMap["2064"].data;
+    if (outputMap["PartitionedCall"] && outputMap["PartitionedCall"].data instanceof Float32Array) {
+      logits = outputMap["PartitionedCall"].data;
     } else {
       for (const name of this.session.outputNames) {
         const out = outputMap[name];
@@ -126,7 +126,7 @@ export class InferenceEngine {
     }
 
     // Check if the top prediction is Background class (index 4)
-    if (maxIndex === BACKGROUND_INDEX) {
+    if (maxIndex === BACKGROUND_INDEX && maxProb > 0.70) {
       throw new Error("The scan appears to be outside the supported leaf classes. Please photograph a well-lit crop leaf.");
     }
 
