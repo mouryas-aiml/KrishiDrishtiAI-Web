@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
   AlertTriangle,
@@ -22,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { Analytics, Assistant, Crops, Dashboard, ScanPage, SettingsPage, Weather } from "./pages";
+import { t, SUPPORTED_LANGUAGES, LanguageCode } from "./i18n";
 import {
   checkApiHealth,
   forgotPassword,
@@ -33,14 +35,17 @@ import {
   User
 } from "./api";
 
+const FarmExplorer = lazy(() => import("./FarmExplorer"));
+
 const links = [
-  { to: "/", label: "Overview", icon: Leaf },
-  { to: "/scan", label: "AI Scan", icon: FileScan },
-  { to: "/crops", label: "Crop Library", icon: BookOpen },
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/assistant", label: "Assistant", icon: Sparkles },
-  { to: "/weather", label: "Weather", icon: CloudSun },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/", key: "navOverview", label: "Overview", icon: Leaf },
+  { to: "/scan", key: "navScan", label: "AI Scan", icon: FileScan },
+  { to: "/crops", key: "navCrops", label: "Crop Library", icon: BookOpen },
+  { to: "/analytics", key: "navAnalytics", label: "Analytics", icon: BarChart3 },
+  { to: "/assistant", key: "navAssistant", label: "Assistant", icon: Sparkles },
+  { to: "/weather", key: "navWeather", label: "Weather", icon: CloudSun },
+  { to: "/farm-explorer", key: "navExplorer", label: "3D Farm Explorer", icon: Leaf },
+  { to: "/settings", key: "navSettings", label: "Settings", icon: Settings },
 ];
 
 export default function App() {
@@ -81,7 +86,8 @@ export default function App() {
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const location = useLocation();
-  const current = links.find((link) => link.to === location.pathname)?.label ?? "Overview";
+  const currentLink = links.find((link) => link.to === location.pathname);
+  const currentTitle = currentLink ? t(currentLink.key, language) : t("navOverview", language);
 
   useEffect(() => {
     if (getApiConfigurationError()) {
@@ -208,14 +214,10 @@ export default function App() {
     setProfileOpen(false);
   }
 
-  const eyebrowGreetings: Record<string, string> = {
-    English: "Namaskara",
-    Kannada: "ನಮಸ್ಕಾರ",
-    Hindi: "नमस्ते"
-  };
-
-  const displayName = user?.name ? user.name : (language === "Kannada" ? "ರೈತ ಮಿತ್ರ" : language === "Hindi" ? "किसान मित्र" : "Farmer Friend");
-  const fullGreeting = `${eyebrowGreetings[language] || "Namaskara"}, ${displayName}`;
+  const greetingWord = t("greeting", language);
+  const defaultFriend = t("farmerFriend", language);
+  const displayName = user?.name ? user.name : defaultFriend;
+  const fullGreeting = `${greetingWord}, ${displayName}`;
 
   return (
     <div className="app-shell">
@@ -235,9 +237,9 @@ export default function App() {
           <X size={20} />
         </button>
 
-        <p className="nav-caption">Workspace</p>
+        <p className="nav-caption">{t("workspace", language)}</p>
         <nav>
-          {links.map(({ to, label, icon: Icon }) => (
+          {links.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -245,32 +247,26 @@ export default function App() {
               className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
             >
               <Icon size={18} />
-              {label}
+              {t(key, language)}
             </NavLink>
           ))}
         </nav>
 
         <div className="sidebar-note">
-          <span className="status-dot" style={{ background: apiStatus === "ready" ? "#9bd36b" : "#f59e0b" }} />
-          {apiStatus === "ready" ? "TypeScript ONNX Active" : "Connecting API..."}
+          <span className="status-dot" style={{ background: apiStatus === "ready" ? "#9bd36b" : "#38bdf8" }} />
+          {apiStatus === "ready" ? "Cloud & ONNX Active" : "Edge Client AI Active"}
           <br />
-          <small>{apiStatus === "ready" ? "PostgreSQL & Model Ready" : "Local Engine Starting"}</small>
+          <small>{apiStatus === "ready" ? "PostgreSQL & Model Ready" : "Zero-Latency In-Browser Vision"}</small>
         </div>
       </aside>
 
       {open && <button className="backdrop" aria-label="Close navigation" onClick={() => setOpen(false)} />}
 
       <main className="main-content">
-        {apiStatus === "unavailable" && (
-          <div className="api-banner">
-            Inference API is initializing or offline at <code>{import.meta.env.VITE_API_URL || "http://localhost:8080/api"}</code>.
-          </div>
-        )}
-
         <header className="topbar">
           <div>
             <p className="eyebrow">{fullGreeting}</p>
-            <h1>{current}</h1>
+            <h1>{currentTitle}</h1>
           </div>
 
           <div className="topbar-actions">
@@ -278,9 +274,11 @@ export default function App() {
             <div className="lang-selector-pill">
               <Globe size={16} />
               <select value={language} onChange={(e) => handleLanguageChange(e.target.value)} title="Display and voice translation language">
-                <option value="English">English</option>
-                <option value="Kannada">ಕನ್ನಡ</option>
-                <option value="Hindi">हिन्दी</option>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.nativeName} ({lang.label})
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -295,7 +293,7 @@ export default function App() {
               </div>
             ) : (
               <button className="auth-trigger-btn" onClick={() => openAuth("login")}>
-                <LogIn size={16} /> Login / Register
+                <LogIn size={16} /> {t("loginRegister", language)}
               </button>
             )}
           </div>
@@ -308,6 +306,7 @@ export default function App() {
           <Route path="/analytics" element={<Analytics language={language} />} />
           <Route path="/assistant" element={<Assistant language={language} user={user} />} />
           <Route path="/weather" element={<Weather language={language} />} />
+          <Route path="/farm-explorer" element={<Suspense fallback={<div className="card page-loading">Loading farm explorer...</div>}><FarmExplorer /></Suspense>} />
           <Route path="/settings" element={<SettingsPage language={language} onLanguageChange={handleLanguageChange} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

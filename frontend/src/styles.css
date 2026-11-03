@@ -240,6 +240,106 @@ button, input, select {
   text-transform: uppercase;
 }
 
+.demo-badge {
+  color: #765b1d;
+  background: #f5e8bd;
+  border: 1px solid #e6ce86;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.farm-explorer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, .7fr);
+  gap: 20px;
+}
+
+.farm-explorer-scene {
+  min-height: 430px;
+}
+
+.farm-explorer-scene .farm-scene {
+  width: 100%;
+  height: 385px;
+}
+
+.plot-detail-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.plot-detail-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e7eee8;
+}
+
+.plot-detail-list span {
+  color: #6b8879;
+  font-size: 13px;
+}
+
+.source-note {
+  color: #765b1d;
+  background: #fff9e9;
+  border-left: 3px solid #d9ac51;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.plot-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.plot-selector {
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  border: 1px solid #dce8df;
+  border-radius: 12px;
+  background: #fff;
+  color: #17352a;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.plot-selector:hover,
+.plot-selector.active {
+  border-color: #1e6b4d;
+  box-shadow: 0 0 0 2px rgba(30, 107, 77, .12);
+}
+
+.plot-selector span,
+.plot-selector small {
+  color: #6b8879;
+  font-size: 12px;
+}
+
+.page-loading {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .farm-explorer-grid,
+  .plot-selector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .farm-explorer-scene .farm-scene {
+    height: 280px;
+  }
+}
+
 .coordinate-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1850,4 +1950,130 @@ button, input, select {
     width: 100%;
     height: 180px;
   }
+}
+
+/* Live Camera Viewfinder & Scanner */
+.camera-scanner-modal {
+  position: relative;
+  background: #0f271e;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+  border: 1px solid #23543f;
+  margin-bottom: 20px;
+}
+
+.camera-video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.camera-video-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-viewfinder-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.camera-reticle-box {
+  width: 240px;
+  height: 240px;
+  border: 2px dashed rgba(163, 230, 53, 0.85);
+  border-radius: 20px;
+  position: relative;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+}
+
+.camera-reticle-box::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a3e635, #34d399, transparent);
+  box-shadow: 0 0 12px #a3e635;
+  animation: scanLaser 2s linear infinite;
+}
+
+@keyframes scanLaser {
+  0% { top: 0%; opacity: 0.3; }
+  50% { top: 100%; opacity: 1; }
+  100% { top: 0%; opacity: 0.3; }
+}
+
+.camera-reticle-hint {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  margin-top: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.camera-action-bar {
+  padding: 16px 20px;
+  background: #123c2d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.camera-shutter-btn {
+  background: #a3e635;
+  color: #123c2d;
+  font-weight: 700;
+  border: 0;
+  padding: 10px 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(163, 230, 53, 0.35);
+  transition: all 0.15s ease;
+}
+
+.camera-shutter-btn:hover {
+  background: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+.camera-aux-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.camera-aux-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
 }

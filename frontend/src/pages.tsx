@@ -4,12 +4,14 @@ import {
   AlertTriangle,
   ArrowUpRight,
   BarChart3,
+  Camera,
   CheckCircle2,
   ChevronRight,
   CloudSun,
   Edit3,
   FileScan,
   FlaskConical,
+  FlipHorizontal,
   HelpCircle,
   ImagePlus,
   Info,
@@ -51,6 +53,8 @@ import {
   Scan,
   User
 } from "./api";
+import { t, SUPPORTED_LANGUAGES, getLanguageLocale } from "./i18n";
+import { speakText, stopSpeaking } from "./speech";
 
 const FarmScene = lazy(() => import("./FarmScene"));
 
@@ -67,28 +71,6 @@ const sampleLeaves = [
   { name: "Corn Common Rust", file: "/samples/corn_common_rust.png", crop: "Corn", hint: "Raised powdery brown pustules" },
   { name: "Apple Healthy Leaf", file: "/samples/apple_healthy.png", crop: "Apple", hint: "Clean vigorous leaf tissue" },
 ];
-
-// Speech Helper Utilities
-function getLanguageLocale(language: string): string {
-  if (language.toLowerCase().includes("kan")) return "kn-IN";
-  if (language.toLowerCase().includes("hin")) return "hi-IN";
-  return "en-IN";
-}
-
-function speakText(text: string, language: string = "English", onEnd?: () => void): boolean {
-  if (!("speechSynthesis" in window)) {
-    alert("Speech synthesis is not supported on this browser.");
-    return false;
-  }
-  window.speechSynthesis.cancel();
-  const clean = text.replace(/[#*`_\[\]]/g, " ").trim();
-  const utterance = new SpeechSynthesisUtterance(clean);
-  utterance.lang = getLanguageLocale(language);
-  utterance.rate = 0.95;
-  if (onEnd) utterance.onend = onEnd;
-  window.speechSynthesis.speak(utterance);
-  return true;
-}
 
 export function Dashboard({ language = "English", user }: { language?: string; user?: User | null }) {
   const [scans, setScans] = useState<Scan[]>([]);
@@ -120,17 +102,14 @@ export function Dashboard({ language = "English", user }: { language?: string; u
             <span>Krishi Drishti AI Intelligence</span>
           </div>
           <p className="eyebrow light">AI Crop Health Workspace</p>
-          <h2>{user ? `Welcome back, ${user.name}` : "Make every scan a better decision."}</h2>
-          <p>
-            Screen leaf health in real-time with the Krishi Drishti deep learning model.
-            Get instant organic treatment protocols, chemical dosages, and voice assistance.
-          </p>
+          <h2>{user ? `${t("greeting", language)}, ${user.name}` : t("heroTitle", language)}</h2>
+          <p>{t("heroSubtitle", language)}</p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
             <Link className="button button-light" to="/scan">
-              Start a leaf scan <ArrowUpRight size={17} />
+              {t("startScanBtn", language)} <ArrowUpRight size={17} />
             </Link>
             <Link className="button" style={{ background: "rgba(255,255,255,0.15)", color: "#fff" }} to="/assistant">
-              Ask AI Doctor <Sparkles size={16} />
+              {t("askDoctorBtn", language)} <Sparkles size={16} />
             </Link>
           </div>
         </div>
@@ -143,22 +122,22 @@ export function Dashboard({ language = "English", user }: { language?: string; u
 
       <div className="stats-grid">
         <div className="stat-card">
-          <p>Total Scans Recorded</p>
+          <p>{t("totalScansRecorded", language)}</p>
           <strong>{totalScans}</strong>
           <span>{summary ? `Updated ${new Date(summary.lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Loading database summary..."}</span>
         </div>
         <div className="stat-card">
-          <p>Healthy Tissue Ratio</p>
+          <p>{t("healthyTissueRatio", language)}</p>
           <strong>{healthyRatio}%</strong>
           <span>{healthyCount} healthy scans</span>
         </div>
         <div className="stat-card">
-          <p>Model Engine</p>
+          <p>{t("modelEngine", language)}</p>
           <strong>ONNX 224</strong>
           <span>MobileNet / ResNet</span>
         </div>
         <div className="stat-card">
-          <p>Language & Voice</p>
+          <p>{t("languageAndVoice", language)}</p>
           <strong>{language}</strong>
           <span>Speech Enabled</span>
         </div>
@@ -169,10 +148,10 @@ export function Dashboard({ language = "English", user }: { language?: string; u
           <div className="section-head">
             <div>
               <p className="eyebrow">Audit Stream</p>
-              <h3>Recent Field Diagnoses</h3>
+              <h3>{t("recentDiagnoses", language)}</h3>
             </div>
             <Link to="/analytics" className="text-link">
-              View all <ArrowUpRight size={15} />
+              {t("viewAll", language)} <ArrowUpRight size={15} />
             </Link>
           </div>
 
@@ -239,6 +218,79 @@ export function ScanPage({ language = "English", user }: { language?: string; us
   const [notes, setNotes] = useState("");
   const [speaking, setSpeaking] = useState(false);
 
+  // Direct Camera Scanner States
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [cameraError, setCameraError] = useState("");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [cameraStream]);
+
+  async function startCamera(mode: "environment" | "user" = "environment") {
+    setCameraError("");
+    setCameraOpen(true);
+    setFacingMode(mode);
+
+    try {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: mode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+      setCameraStream(stream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+    } catch (err: any) {
+      console.error("Camera access error:", err);
+      setCameraError("Camera permission denied or camera not found. Please enable camera access in browser settings.");
+    }
+  }
+
+  function switchCamera() {
+    const nextMode = facingMode === "environment" ? "user" : "environment";
+    startCamera(nextMode);
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+    setCameraOpen(false);
+    setCameraError("");
+  }
+
+  function captureCameraPhoto() {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (blob) {
+        stopCamera();
+        handleFile(blob);
+      }
+    }, "image/jpeg", 0.95);
+  }
+
   async function handleFile(file: File | Blob, previewUrl?: string) {
     setError("");
     setResult(null);
@@ -246,7 +298,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
     setLoading(true);
     if (previewUrl) {
       setPreview(previewUrl);
-    } else if (file instanceof File) {
+    } else if (file instanceof File || file instanceof Blob) {
       setPreview(URL.createObjectURL(file));
     }
 
@@ -283,7 +335,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
 
   function toggleVoiceReadout() {
     if (speaking) {
-      window.speechSynthesis?.cancel();
+      stopSpeaking();
       setSpeaking(false);
       return;
     }
@@ -301,16 +353,114 @@ export function ScanPage({ language = "English", user }: { language?: string; us
 
   return (
     <section className="page-grid">
+      {/* Live Camera Scanner Modal */}
+      {cameraOpen && (
+        <div className="camera-modal-backdrop" onClick={stopCamera}>
+          <div className="camera-scanner-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="camera-modal-header">
+              <h3>
+                <Camera size={20} /> {t("liveCameraScanner", language)}
+              </h3>
+              <button className="camera-close-btn" onClick={stopCamera} title={t("closeCameraBtn", language)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {cameraError ? (
+              <div className="form-error" style={{ margin: "20px" }}>
+                <AlertTriangle size={18} />
+                <span>{cameraError}</span>
+              </div>
+            ) : (
+              <div className="camera-video-container">
+                <video
+                  ref={(el) => {
+                    videoRef.current = el;
+                    if (el && cameraStream && el.srcObject !== cameraStream) {
+                      el.srcObject = cameraStream;
+                      el.play().catch(() => {});
+                    }
+                  }}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="camera-video-feed"
+                />
+                <div className="camera-reticle-box">
+                  <div className="camera-reticle-corner tl" />
+                  <div className="camera-reticle-corner tr" />
+                  <div className="camera-reticle-corner bl" />
+                  <div className="camera-reticle-corner br" />
+                  <div className="camera-laser-line" />
+                </div>
+                <div className="camera-hint-overlay">
+                  {t("centerLeafTarget", language)}
+                </div>
+              </div>
+            )}
+
+            <div className="camera-controls-row">
+              <button
+                type="button"
+                className="camera-switch-btn"
+                onClick={switchCamera}
+                title={t("switchCameraBtn", language)}
+              >
+                <FlipHorizontal size={20} />
+              </button>
+
+              <button
+                type="button"
+                className="camera-shutter-btn"
+                onClick={captureCameraPhoto}
+                title={t("captureAnalyzeBtn", language)}
+              >
+                <span className="camera-shutter-inner" />
+              </button>
+
+              <div style={{ width: "44px" }} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="scan-intro">
         <div>
-          <p className="eyebrow">Real-time Image Diagnosis</p>
-          <h2>Upload or Choose a Crop Leaf</h2>
-          <p className="muted">
-            The image is normalized to 224x224 RGB and evaluated by our ONNX 39-class crop vision model.
-          </p>
+          <p className="eyebrow">{t("realtimeDiagnosis", language)}</p>
+          <h2>{t("uploadOrChooseLeaf", language)}</h2>
+          <p className="muted">{t("scanDesc", language)}</p>
         </div>
         <div className="contract-pill">
           <CheckCircle2 size={16} /> ONNX 224x224 Model Active
+        </div>
+      </div>
+
+      {/* Primary Capture Action Options */}
+      <div className="card" style={{ padding: "16px 20px" }}>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => startCamera("environment")}
+            disabled={loading}
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+          >
+            <Camera size={18} /> {t("openCameraBtn", language)}
+          </button>
+          <label
+            className="button button-light"
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer", margin: 0 }}
+          >
+            <ImagePlus size={18} /> {t("dragOrChooseLeaf", language)}
+            <input
+              type="file"
+              accept="image/*,.png,.jpg,.jpeg,.webp,.avif,.bmp,.tiff,.heic,.heif,.gif"
+              capture="environment"
+              onChange={onFileInput}
+              disabled={loading}
+              style={{ display: "none" }}
+            />
+          </label>
         </div>
       </div>
 
@@ -318,12 +468,12 @@ export function ScanPage({ language = "English", user }: { language?: string; us
       <div className="card" style={{ padding: "14px 20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
           <Edit3 size={17} style={{ color: "#1a5e42" }} />
-          <strong>Field Notes / Observation:</strong>
+          <strong>{t("fieldNotesLabel", language)}</strong>
           <input
             type="text"
             className="form-input"
             style={{ flex: 1, minWidth: "220px", padding: "8px 12px" }}
-            placeholder="e.g. Plot North-B, row 3, 20% leaf coverage affected"
+            placeholder={t("fieldNotesPlaceholder", language)}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
@@ -332,9 +482,9 @@ export function ScanPage({ language = "English", user }: { language?: string; us
 
       {/* Sample Leaf Quick Selector */}
       <div className="card sample-card">
-        <p className="eyebrow">Verified Test Leaves</p>
+        <p className="eyebrow">{t("verifiedTestLeaves", language)}</p>
         <p style={{ fontSize: "13px", color: "#5d786a", margin: "4px 0 12px" }}>
-          Click any verified field sample below to run an instant diagnosis:
+          {t("verifiedLeavesHint", language)}
         </p>
         <div className="sample-grid">
           {sampleLeaves.map((sample) => (
@@ -368,17 +518,23 @@ export function ScanPage({ language = "English", user }: { language?: string; us
         ) : (
           <>
             <ImagePlus size={42} />
-            <strong>{loading ? "Analyzing leaf tissue..." : "Choose or drag a leaf photograph"}</strong>
-            <span>Supports PNG, JPG, JPEG · Clear, centered single leaf</span>
+            <strong>{loading ? t("analyzingLeaf", language) : t("dragOrChooseLeaf", language)}</strong>
+            <span>{t("supportedFormats", language)}</span>
           </>
         )}
-        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onFileInput} disabled={loading} />
+        <input
+          type="file"
+          accept="image/*,.png,.jpg,.jpeg,.webp,.avif,.bmp,.tiff,.heic,.heif,.gif"
+          capture="environment"
+          onChange={onFileInput}
+          disabled={loading}
+        />
       </label>
 
       {loading && (
         <div className="card loading-card">
           <Loader2 className="animate-spin" size={28} style={{ color: "#1e6b4d", margin: "auto" }} />
-          <strong style={{ display: "block", marginTop: "12px", fontSize: "16px" }}>Evaluating with Crop Vision AI...</strong>
+          <strong style={{ display: "block", marginTop: "12px", fontSize: "16px" }}>{t("analyzingLeaf", language)}</strong>
           <p style={{ color: "#6b8879", fontSize: "13px", margin: "4px 0 0" }}>
             Extracting features, computing disease probabilities, and querying treatment protocols.
           </p>
@@ -401,7 +557,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
           <div className="card highlight-result">
             <div className="result-header">
               <span className={`status-badge ${topPrediction.isHealthy ? "healthy" : topPrediction.severity}`}>
-                {topPrediction.isHealthy ? "Healthy Foliage" : `${topPrediction.severity.toUpperCase()} SEVERITY`}
+                {topPrediction.isHealthy ? t("healthyFoliage", language) : `${topPrediction.severity.toUpperCase()} SEVERITY`}
               </span>
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <span className="confidence-pill">
@@ -414,7 +570,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
                   title="Listen to diagnosis and advice aloud"
                 >
                   {speaking ? <VolumeX size={15} /> : <Volume2 size={15} />}
-                  {speaking ? "Stop Audio" : "Listen Advice"}
+                  {speaking ? t("stopAudio", language) : t("listenAdvice", language)}
                 </button>
               </div>
             </div>
@@ -427,7 +583,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
             </div>
 
             <p className="symptoms-text">
-              <strong>Observed Symptoms:</strong> {topPrediction.symptoms}
+              <strong>{t("observedSymptoms", language)}</strong> {topPrediction.symptoms}
             </p>
 
             {/* Actionable Treatment Protocols */}
@@ -436,7 +592,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
                 <div className="treatment-card organic">
                   <div className="treatment-head">
                     <Leaf size={18} />
-                    <strong>Organic & Bio-Control</strong>
+                    <strong>{t("organicRemedy", language)}</strong>
                   </div>
                   <p>{topPrediction.organicTreatment}</p>
                 </div>
@@ -444,7 +600,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
                 <div className="treatment-card chemical">
                   <div className="treatment-head">
                     <FlaskConical size={18} />
-                    <strong>Chemical Treatment</strong>
+                    <strong>{t("chemicalSpray", language)}</strong>
                   </div>
                   <p>{topPrediction.chemicalTreatment}</p>
                 </div>
@@ -452,7 +608,7 @@ export function ScanPage({ language = "English", user }: { language?: string; us
                 <div className="treatment-card prevention">
                   <div className="treatment-head">
                     <ShieldCheck size={18} />
-                    <strong>Prevention Practice</strong>
+                    <strong>{t("preventionPractice", language)}</strong>
                   </div>
                   <p>{topPrediction.prevention}</p>
                 </div>
@@ -553,7 +709,7 @@ export function Crops({ language = "English" }: { language?: string }) {
             <Search size={16} style={{ color: "#4a6b5c", flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Search crop (e.g. Tomato, Apple)..."
+              placeholder={t("searchCropPlaceholder", language)}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -575,21 +731,21 @@ export function Crops({ language = "English" }: { language?: string }) {
               className={`crop-filter-btn ${categoryTab === "all" ? "active" : ""}`}
               onClick={() => setCategoryTab("all")}
             >
-              All ({catalog.length})
+              {t("allCrops", language)} ({catalog.length})
             </button>
             <button
               type="button"
               className={`crop-filter-btn ${categoryTab === "fruits" ? "active" : ""}`}
               onClick={() => setCategoryTab("fruits")}
             >
-              Fruits ({catalog.filter(c => isFruit(c.crop)).length})
+              {t("fruits", language)} ({catalog.filter(c => isFruit(c.crop)).length})
             </button>
             <button
               type="button"
               className={`crop-filter-btn ${categoryTab === "vegetables" ? "active" : ""}`}
               onClick={() => setCategoryTab("vegetables")}
             >
-              Vegetables ({catalog.filter(c => !isFruit(c.crop)).length})
+              {t("vegetables", language)} ({catalog.filter(c => !isFruit(c.crop)).length})
             </button>
           </div>
 
@@ -676,7 +832,7 @@ export function Crops({ language = "English" }: { language?: string }) {
                           speakText(text, language);
                         }}
                       >
-                        <Volume2 size={13} /> Listen Audio
+                        <Volume2 size={13} /> {t("listenAdvice", language)}
                       </button>
                     </div>
 
@@ -685,12 +841,12 @@ export function Crops({ language = "English" }: { language?: string }) {
                       <div className="disease-header-row">
                         <h4>{d.disease}</h4>
                         <span className={`status-badge ${d.isHealthy ? "healthy" : d.severity}`}>
-                          {d.isHealthy ? "Healthy" : `${d.severity.toUpperCase()} SEVERITY`}
+                          {d.isHealthy ? t("healthyFoliage", language) : `${d.severity.toUpperCase()} SEVERITY`}
                         </span>
                       </div>
 
                       <p className="disease-symptom-text">
-                        <strong>Observed Symptoms:</strong> {d.symptoms}
+                        <strong>{t("observedSymptoms", language)}</strong> {d.symptoms}
                       </p>
 
                       {!d.isHealthy && (
@@ -698,21 +854,21 @@ export function Crops({ language = "English" }: { language?: string }) {
                           <div className="mini-treatment organic">
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
                               <Leaf size={15} />
-                              <strong>Organic Remedy:</strong>
+                              <strong>{t("organicRemedy", language)}</strong>
                             </div>
                             <p>{d.organicTreatment}</p>
                           </div>
                           <div className="mini-treatment chemical">
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
                               <FlaskConical size={15} />
-                              <strong>Chemical Spray:</strong>
+                              <strong>{t("chemicalSpray", language)}</strong>
                             </div>
                             <p>{d.chemicalTreatment}</p>
                           </div>
                           <div className="mini-treatment prevention">
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
                               <ShieldCheck size={15} />
-                              <strong>Prevention:</strong>
+                              <strong>{t("preventionPractice", language)}</strong>
                             </div>
                             <p>{d.prevention}</p>
                           </div>
@@ -1081,7 +1237,7 @@ export function Assistant({ language = "English", user }: { language?: string; u
           <span className="icon-box"><MessageCircle size={21} /></span>
           <div>
             <p className="eyebrow">Krishi Drishti Agronomist</p>
-            <h2>AI Crop Advisory Chat</h2>
+            <h2>{t("assistantTitle", currentLang)}</h2>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
             <select
@@ -1089,9 +1245,11 @@ export function Assistant({ language = "English", user }: { language?: string; u
               onChange={(e) => setCurrentLang(e.target.value)}
               className="lang-select"
             >
-              <option value="English">English</option>
-              <option value="Kannada">ಕನ್ನಡ</option>
-              <option value="Hindi">हिन्दी</option>
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.nativeName} ({lang.label})
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -1247,27 +1405,27 @@ export function Weather({ language = "English" }: { language?: string }) {
           <div className="section-head">
             <div>
               <p className="eyebrow">Open-Meteo Field Data</p>
-              <h3>Current Field Weather Conditions</h3>
+              <h3>{t("weatherHeading", language)}</h3>
             </div>
           </div>
 
           <div style={{ marginTop: "20px", display: "grid", gap: "12px" }}>
             <div className="coordinate-row">
-              <label>Latitude <input type="number" step="any" value={coordinates.latitude} onChange={(e) => setCoordinates({ ...coordinates, latitude: Number(e.target.value) })} /></label>
-              <label>Longitude <input type="number" step="any" value={coordinates.longitude} onChange={(e) => setCoordinates({ ...coordinates, longitude: Number(e.target.value) })} /></label>
+              <label>{t("latitude", language)} <input type="number" step="any" value={coordinates.latitude} onChange={(e) => setCoordinates({ ...coordinates, latitude: Number(e.target.value) })} /></label>
+              <label>{t("longitude", language)} <input type="number" step="any" value={coordinates.longitude} onChange={(e) => setCoordinates({ ...coordinates, longitude: Number(e.target.value) })} /></label>
             </div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <button type="button" className="button" onClick={loadWeather} disabled={loading}>{loading ? "Loading..." : "Load live weather"}</button>
-              <button type="button" className="button button-light" onClick={useCurrentLocation}>Use my location</button>
+              <button type="button" className="button" onClick={loadWeather} disabled={loading}>{loading ? "..." : t("loadLiveWeather", language)}</button>
+              <button type="button" className="button button-light" onClick={useCurrentLocation}>{t("useMyLocation", language)}</button>
             </div>
             {error && <div className="error-box"><AlertTriangle size={18} /><span>{error}</span></div>}
             {current ? (
               <div className="weather-metrics">
                 <strong>{current.temperature_2m}°C</strong>
-                <span>Humidity {current.relative_humidity_2m}%</span>
-                <span>Dew point {current.dew_point_2m}°C</span>
-                <span>Rain {current.precipitation} mm</span>
-                <span>Wind {current.wind_speed_10m} km/h</span>
+                <span>{t("humidity", language)} {current.relative_humidity_2m}%</span>
+                <span>Dew point {current.dew_point_2m ?? Math.round(Number(current.temperature_2m) - ((100 - Number(current.relative_humidity_2m)) / 5))}°C</span>
+                <span>{t("precipitation", language)} {current.precipitation} mm</span>
+                <span>{t("windSpeed", language)} {current.wind_speed_10m} km/h</span>
                 <small style={{ width: "100%", color: "#6b8879" }}>
                   Source: {weather?.source} · Retrieved {weather ? new Date(weather.fetchedAt).toLocaleString() : ""}
                 </small>
@@ -1284,7 +1442,7 @@ export function Weather({ language = "English" }: { language?: string }) {
             <div className={`risk-banner ${isBlightRisk ? "high" : "low"}`}>
               <ShieldAlert size={20} />
               <div>
-                <strong>Tomato & Potato Late Blight Risk: {current ? (isBlightRisk ? "HIGH" : "LOW") : "Unavailable"}</strong>
+                <strong>{t("lateBlightRisk", language)}: {current ? (isBlightRisk ? "HIGH" : "LOW") : "Unavailable"}</strong>
                 <p style={{ margin: "2px 0 0", fontSize: "12px" }}>
                   {isBlightRisk
                     ? "Warm temperatures combined with high humidity are environmental conditions associated with late blight risk; this is not a disease diagnosis."
@@ -1296,7 +1454,7 @@ export function Weather({ language = "English" }: { language?: string }) {
             <div className={`risk-banner ${isMildewRisk ? "high" : "low"}`}>
               <AlertTriangle size={20} />
               <div>
-                <strong>Powdery Mildew Risk: {current ? (isMildewRisk ? "MODERATE-HIGH" : "LOW") : "Unavailable"}</strong>
+                <strong>{t("powderyMildewRisk", language)}: {current ? (isMildewRisk ? "MODERATE-HIGH" : "LOW") : "Unavailable"}</strong>
                 <p style={{ margin: "2px 0 0", fontSize: "12px" }}>
                   {isMildewRisk
                     ? "Moderate warmth and elevated moisture match this environmental screening rule; this is not a disease diagnosis."
@@ -1338,6 +1496,9 @@ export function SettingsPage({ language = "English", onLanguageChange }: { langu
     const phrases: Record<string, string> = {
       English: "Krishi Drishti crop vision and speech engine is operational.",
       Kannada: "ಕೃಷಿ ದೃಷ್ಟಿ ಧ್ವನಿ ಮತ್ತು ಬೆಳೆ ರೋಗ ಪತ್ತೆ ವ್ಯವಸ್ಥೆ ಸಿದ್ಧವಾಗಿದೆ.",
+      Telugu: "కృషి దృష్టి వాయిస్ మరియు పంట వ్యాధి నిర్ధారణ వ్యవస్థ సిద్ధంగా ఉంది.",
+      Tamil: "கிருஷி திருஷ்டி குரல் மற்றும் பயிர் நோய் கண்டறிதல் அமைப்பு தயாராக உள்ளது.",
+      Malayalam: "കൃഷി ദൃഷ്ടി വോയ്‌സ്, വിള രോഗനിർണ്ണയ സംവിധാനം തയ്യാറാണ്.",
       Hindi: "कृषि दृष्टि फसल रोग पहचान और आवाज प्रणाली तैयार है।"
     };
     const phrase = phrases[language] || phrases.English;
@@ -1356,9 +1517,11 @@ export function SettingsPage({ language = "English", onLanguageChange }: { langu
             value={language}
             onChange={(e) => onLanguageChange && onLanguageChange(e.target.value)}
           >
-            <option value="English">English</option>
-            <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
-            <option value="Hindi">हिन्दी (Hindi)</option>
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.nativeName} ({lang.label})
+              </option>
+            ))}
           </select>
         </label>
 
