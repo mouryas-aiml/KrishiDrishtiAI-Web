@@ -131,8 +131,20 @@ export async function checkApiHealth(): Promise<{ status: string; service: strin
 // Image inference is intentionally backend-only: predictions must come from the
 // versioned ONNX model and its server-side preprocessing pipeline.
 export async function predictImage(file: File | Blob, notes?: string): Promise<{ predictions: Prediction[]; scan?: Scan }> {
+  let uploadFile: File | Blob = file;
+  if (isBrowser && !isLocalhost) {
+    try {
+      const health = await api.get("/health", { timeout: 5000 });
+      if (health.data?.modelReady !== true) {
+        uploadFile = await resizeForLegacyModel(file);
+      }
+    } catch {
+      // The inference request below reports the actionable API error.
+    }
+  }
+
   const form = new FormData();
-  form.append("image", file, "leaf_scan.jpg");
+  form.append("image", uploadFile, "leaf_scan.jpg");
   if (notes) form.append("notes", notes);
 
   const response = await api.post<{ predictions: Prediction[]; scan?: Scan }>("/predictions", form, {
@@ -143,6 +155,32 @@ export async function predictImage(file: File | Blob, notes?: string): Promise<{
     throw new Error("The inference service returned no predictions.");
   }
   return response.data;
+}
+
+async function resizeForLegacyModel(file: File | Blob): Promise<Blob> {
+  const image = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("Unable to decode the selected image."));
+      image.src = objectUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Browser image processing is unavailable.");
+    const scale = Math.max(256 / image.naturalWidth, 256 / image.naturalHeight);
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    context.drawImage(image, (256 - width) / 2, (256 - height) / 2, width, height);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Unable to prepare image for the inference service.")), "image/jpeg", 0.92);
+    });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 export async function getScans(): Promise<Scan[]> {
