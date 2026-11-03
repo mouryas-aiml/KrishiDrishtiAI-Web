@@ -27,6 +27,7 @@ import {
   forgotPassword,
   getApiConfigurationError,
   loginUser,
+  logoutUser,
   registerUser,
   updateUserProfile,
   User
@@ -196,7 +197,12 @@ export default function App() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await logoutUser();
+    } catch (error) {
+      console.error("Failed to revoke server session:", error);
+    }
     setUser(null);
     localStorage.removeItem("krishi_user");
     setProfileOpen(false);
@@ -208,6 +214,9 @@ export default function App() {
     Hindi: "नमस्ते"
   };
 
+  const displayName = user?.name ? user.name : (language === "Kannada" ? "ರೈತ ಮಿತ್ರ" : language === "Hindi" ? "किसान मित्र" : "Farmer Friend");
+  const fullGreeting = `${eyebrowGreetings[language] || "Namaskara"}, ${displayName}`;
+
   return (
     <div className="app-shell">
       <button className="mobile-menu" aria-label="Open navigation" onClick={() => setOpen(true)}>
@@ -216,8 +225,11 @@ export default function App() {
 
       <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
         <div className="brand">
-          <span className="brand-mark"><Leaf size={22} /></span>
-          <span>KRISHI<br /><strong>DRISHTI</strong></span>
+          <img src="/logo.svg" alt="Krishi Drishti Logo" className="brand-logo-img" />
+          <div className="brand-text">
+            <span className="brand-title">KRISHI DRISHTI</span>
+            <span className="brand-sub">Smart Crop AI</span>
+          </div>
         </div>
         <button className="close-menu" aria-label="Close navigation" onClick={() => setOpen(false)}>
           <X size={20} />
@@ -257,7 +269,7 @@ export default function App() {
 
         <header className="topbar">
           <div>
-            <p className="eyebrow">{eyebrowGreetings[language] || "Namaskara"}</p>
+            <p className="eyebrow">{fullGreeting}</p>
             <h1>{current}</h1>
           </div>
 

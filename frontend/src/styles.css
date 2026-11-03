@@ -1461,3 +1461,314 @@ button, input, select {
 .profile-chip-interactive:hover {
   transform: translateY(-1px);
 }
+
+/* Krishi Drishti Brand & Logo Styles */
+.brand-logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  object-fit: contain;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.brand-sub {
+  color: #9bd36b;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e5f5eb;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-logo-mini {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+.hero-logo-showcase {
+  display: grid;
+  place-items: center;
+}
+
+.hero-main-logo {
+  width: 108px;
+  height: 108px;
+  border-radius: 26px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  background: #123c2d;
+  padding: 4px;
+}
+
+/* Crop Library Redesign */
+.crop-library-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.crop-nav-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.crop-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #c9dcd0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.crop-search-box:focus-within {
+  border-color: #1a5e42;
+  box-shadow: 0 0 0 3px rgba(26, 94, 66, 0.12);
+}
+
+.crop-search-box input {
+  border: 0;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  color: #17352a;
+  background: transparent;
+}
+
+.crop-filter-tabs {
+  display: flex;
+  background: #e4eee7;
+  padding: 3px;
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.crop-filter-btn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a6b5c;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.crop-filter-btn:hover {
+  color: #123c2d;
+}
+
+.crop-filter-btn.active {
+  background: #ffffff;
+  color: #123c2d;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.crop-options-list {
+  display: grid;
+  gap: 8px;
+  max-height: 720px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.crop-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #dcece3;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  gap: 10px;
+  width: 100%;
+}
+
+.crop-option-item:hover {
+  border-color: #92bfa7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(18, 60, 45, 0.06);
+}
+
+.crop-option-item.active {
+  border-color: #1a5e42;
+  background: #edf7f1;
+  box-shadow: 0 0 0 1px #1a5e42, 0 4px 12px rgba(26, 94, 66, 0.1);
+}
+
+.crop-option-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.crop-thumb-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #c9dcd0;
+  background: #f0f7f3;
+  flex-shrink: 0;
+}
+
+.crop-option-texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.crop-option-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #17352a;
+}
+
+.crop-option-type {
+  font-size: 11px;
+  color: #5d786a;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.crop-count-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #eef5f0;
+  color: #276246;
+  white-space: nowrap;
+}
+
+.crop-option-item.active .crop-count-badge {
+  background: #1a5e42;
+  color: #ffffff;
+}
+
+/* Disease Cards with Photos */
+.disease-cards-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.disease-card-with-photo {
+  background: #ffffff;
+  border: 1px solid #dcece3;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 20px;
+  align-items: flex-start;
+  transition: all 0.15s ease;
+}
+
+.disease-card-with-photo:hover {
+  border-color: #a8cfba;
+  box-shadow: 0 8px 24px rgba(18, 60, 45, 0.06);
+}
+
+.disease-photo-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.disease-leaf-photo {
+  width: 160px;
+  height: 160px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #c9dcd0;
+  background: #f0f7f3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.disease-photo-caption {
+  font-size: 11px;
+  color: #6b8879;
+  text-align: center;
+  font-weight: 500;
+}
+
+.disease-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.disease-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.disease-header-row h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #123c2d;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .crop-library-layout {
+    grid-template-columns: 1fr;
+  }
+  .crop-options-list {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 680px) {
+  .disease-card-with-photo {
+    grid-template-columns: 1fr;
+  }
+  .disease-leaf-photo {
+    width: 100%;
+    height: 180px;
+  }
+}

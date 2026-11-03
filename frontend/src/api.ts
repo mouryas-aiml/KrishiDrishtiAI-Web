@@ -9,6 +9,7 @@ export const apiBaseUrl = configuredApiUrl;
 export const api = axios.create({
   baseURL: apiBaseUrl,
   timeout: 30000,
+  withCredentials: true,
 });
 
 export interface Prediction {
@@ -26,11 +27,19 @@ export interface Prediction {
 
 export interface Scan {
   id: string;
+  userId?: string;
   crop: string;
   disease: string;
   confidence: number;
   notes?: string;
   createdAt: string;
+}
+
+export interface DashboardSummary {
+  totalScans: number;
+  healthyScans: number;
+  diseasedScans: number;
+  lastUpdated: string;
 }
 
 export interface User {
@@ -80,7 +89,12 @@ export async function predictImage(file: File | Blob, notes?: string): Promise<{
 }
 
 export async function getScans(): Promise<Scan[]> {
-  const response = await api.get<Scan[]>("/scans");
+  const response = await api.get<{ items: Scan[] }>("/scans");
+  return response.data.items;
+}
+
+export async function getDashboardSummary(): Promise<DashboardSummary> {
+  const response = await api.get<DashboardSummary>("/dashboard/summary");
   return response.data;
 }
 
@@ -128,6 +142,10 @@ export async function forgotPassword(contactNumber: string, newPassword: string)
     newPassword,
   });
   return response.data.success;
+}
+
+export async function logoutUser(): Promise<void> {
+  await api.post("/auth/logout");
 }
 
 export async function updateUserProfile(id: string, name: string, contactNumber: string, preferredLanguage?: string): Promise<User> {

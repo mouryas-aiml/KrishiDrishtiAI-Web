@@ -1,7 +1,7 @@
 # Krishi Drishti (ಕೃಷಿ ದೃಷ್ಟಿ)
 
 Krishi Drishti is a website-only crop health platform. It combines a
-mobile-first React/Vite interface with a Java Spring Boot API that runs the
+mobile-first React/Vite interface with a Node.js/Express TypeScript API that runs the
 preserved ONNX model and stores scan results in PostgreSQL.
 
 The website opens directly in any modern browser over HTTP or HTTPS. It has no
@@ -11,9 +11,8 @@ native runtime or packaged mobile application requirement.
 
 - **Frontend:** React, TypeScript, Vite, React Router, CSS, Lucide React,
   Axios, and Recharts.
-- **Backend:** Java 21, Spring Boot, Spring Data JPA, PostgreSQL, and ONNX
-  Runtime Java.
-- **Deployment:** Vercel for the frontend and Render or another Java-compatible
+- **Backend:** Node.js, Express, TypeScript, PostgreSQL, and ONNX Runtime Node.
+- **Deployment:** Vercel for the frontend and Render or another Node-compatible
   provider for the backend.
 
 ## Run locally
@@ -35,12 +34,9 @@ Configure non-default values from
 
 ```powershell
 cd M:\KrishiDrishtiAI-Web\backend
-mvn clean spring-boot:run
+npm install
+npm run dev
 ```
-
-The backend is a Maven project. Do not run `npm` commands inside `backend`.
-If Maven is not installed, install it with `winget install Apache.Maven`, open
-a new terminal, and verify with `mvn -version`.
 
 The API starts at `http://localhost:8080`. The ONNX model path defaults to
 `../model/model.onnx`; override it with `MODEL_PATH` when needed.
@@ -80,7 +76,7 @@ reachable from that device.
 ## Frontend features
 
 - Responsive overview dashboard.
-- AI image upload connected to the Java prediction endpoint.
+- AI image upload connected to the Node.js prediction endpoint.
 - Verified crop library based on the 39-class model mapping.
 - Scan analytics with responsive Recharts visualisation.
 - Assistant, weather configuration state, and settings screens.
@@ -104,7 +100,7 @@ frontend never fabricates predictions.
 
 ```text
 frontend/       React/Vite website
-backend/        Spring Boot REST API and ONNX inference service
+backend/        Express REST API and ONNX inference service
 model/          Preserved training scripts and model binaries
 asset/          Evaluation graphs and demonstration assets
 docs/           Migration and model-preservation notes
@@ -132,8 +128,7 @@ npm run typecheck
 npm run build
 
 cd M:\KrishiDrishtiAI-Web\backend
-mvn test
-mvn package
+npm run build
 ```
 
 ## Dataset references

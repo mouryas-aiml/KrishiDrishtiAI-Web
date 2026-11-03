@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BarChart3,
   CheckCircle2,
+  ChevronRight,
   CloudSun,
   Edit3,
   FileScan,
@@ -32,6 +33,7 @@ import {
   VolumeX,
   X
 } from "lucide-react";
+import defaultCatalog from "./defaultCatalog.json";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   apiBaseUrl,
@@ -39,6 +41,7 @@ import {
   checkApiHealth,
   deleteScan,
   getCrops,
+  getDashboardSummary,
   getScans,
   predictImage,
   updateScanNotes,
@@ -86,6 +89,7 @@ function speakText(text: string, language: string = "English", onEnd?: () => voi
 
 export function Dashboard({ language = "English", user }: { language?: string; user?: User | null }) {
   const [scans, setScans] = useState<Scan[]>([]);
+  const [summary, setSummary] = useState<{ totalScans: number; healthyScans: number; diseasedScans: number; lastUpdated: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,10 +97,13 @@ export function Dashboard({ language = "English", user }: { language?: string; u
       .then((data) => setScans(data))
       .catch((err) => console.warn("Failed to load recent scans:", err))
       .finally(() => setLoading(false));
+    getDashboardSummary()
+      .then((aggregate) => setSummary(aggregate))
+      .catch((err) => console.warn("Failed to load dashboard summary:", err));
   }, []);
 
-  const totalScans = scans.length;
-  const healthyCount = scans.filter((s) => s.disease.toLowerCase() === "healthy").length;
+  const totalScans = summary?.totalScans ?? scans.length;
+  const healthyCount = summary?.healthyScans ?? scans.filter((s) => s.disease.toLowerCase() === "healthy").length;
   const healthyRatio = totalScans > 0 ? Math.round((healthyCount / totalScans) * 100) : 100;
   const recentObservations = scans.slice(0, 5);
 
@@ -104,13 +111,17 @@ export function Dashboard({ language = "English", user }: { language?: string; u
     <section className="page-grid">
       <div className="hero-card">
         <div>
+          <div className="hero-brand-tag">
+            <img src="/logo.svg" alt="Krishi Drishti Logo" className="hero-logo-mini" />
+            <span>Krishi Drishti AI Intelligence</span>
+          </div>
           <p className="eyebrow light">AI Crop Health Workspace</p>
           <h2>{user ? `Welcome back, ${user.name}` : "Make every scan a better decision."}</h2>
           <p>
             Screen leaf health in real-time with the Krishi Drishti deep learning model.
             Get instant organic treatment protocols, chemical dosages, and voice assistance.
           </p>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
             <Link className="button button-light" to="/scan">
               Start a leaf scan <ArrowUpRight size={17} />
             </Link>
@@ -119,8 +130,8 @@ export function Dashboard({ language = "English", user }: { language?: string; u
             </Link>
           </div>
         </div>
-        <div className="hero-illustration">
-          <Sprout size={88} strokeWidth={1.2} />
+        <div className="hero-logo-showcase">
+          <img src="/logo.svg" alt="Krishi Drishti Official Logo" className="hero-main-logo" />
         </div>
       </div>
 
@@ -128,7 +139,7 @@ export function Dashboard({ language = "English", user }: { language?: string; u
         <div className="stat-card">
           <p>Total Scans Recorded</p>
           <strong>{totalScans}</strong>
-          <span>PostgreSQL Active</span>
+          <span>{summary ? `Updated ${new Date(summary.lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Loading database summary..."}</span>
         </div>
         <div className="stat-card">
           <p>Healthy Tissue Ratio</p>
@@ -478,127 +489,230 @@ export function ScanPage({ language = "English", user }: { language?: string; us
   );
 }
 
+const FRUIT_CROPS = new Set([
+  "Apple", "Blueberry", "Cherry", "Grape", "Orange", "Peach", "Raspberry", "Strawberry"
+]);
+
+function isFruit(crop: string): boolean {
+  return FRUIT_CROPS.has(crop);
+}
+
+function getDiseasePhoto(crop: string, disease: string): string {
+  const c = crop.toLowerCase().trim();
+  const d = disease.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_');
+  return `/diseases/${c}-${d}.jpg`;
+}
+
+function getCropCover(crop: string): string {
+  return `/diseases/crop-${crop.toLowerCase().trim()}.jpg`;
+}
+
 export function Crops({ language = "English" }: { language?: string }) {
-  const [catalog, setCatalog] = useState<CropCatalogItem[]>([]);
+  const [catalog, setCatalog] = useState<CropCatalogItem[]>(() => {
+    return (defaultCatalog as CropCatalogItem[]) || [];
+  });
   const [query, setQuery] = useState("");
-  const [selectedCrop, setSelectedCrop] = useState<CropCatalogItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [categoryTab, setCategoryTab] = useState<"all" | "fruits" | "vegetables">("all");
+  const [selectedCrop, setSelectedCrop] = useState<CropCatalogItem | null>(() => {
+    return (defaultCatalog as CropCatalogItem[])?.[0] || null;
+  });
 
   useEffect(() => {
     getCrops()
       .then((data) => {
-        setCatalog(data);
-        if (data.length > 0) setSelectedCrop(data[0]);
+        if (data && data.length > 0) {
+          setCatalog(data);
+          // Keep current selection or update to first
+          setSelectedCrop((prev) => (prev ? (data.find(c => c.crop === prev.crop) || data[0]) : data[0]));
+        }
       })
-      .catch(() => {
-        const dummy: CropCatalogItem[] = defaultCrops.map(name => ({
-          crop: name,
-          totalClasses: 3,
-          diseases: [
-            {
-              disease: "Healthy",
-              isHealthy: true,
-              severity: "low",
-              symptoms: "Normal color and vigor.",
-              organicTreatment: "Regular watering.",
-              chemicalTreatment: "None.",
-              prevention: "Standard fertilization."
-            }
-          ]
-        }));
-        setCatalog(dummy);
-        setSelectedCrop(dummy[0]);
-      })
-      .finally(() => setLoading(false));
+      .catch((err) => console.warn("Using offline complete catalog:", err));
   }, []);
 
-  const filteredCrops = catalog.filter((c) =>
-    c.crop.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredCrops = catalog.filter((c) => {
+    const matchesSearch = c.crop.toLowerCase().includes(query.toLowerCase());
+    if (!matchesSearch) return false;
+    if (categoryTab === "fruits") return isFruit(c.crop);
+    if (categoryTab === "vegetables") return !isFruit(c.crop);
+    return true;
+  });
 
   return (
     <section className="page-grid">
       <div className="crop-library-layout">
+        {/* Left Options Navigation Panel */}
         <div className="crop-nav-panel">
-          <div className="search-bar">
-            <Search size={16} />
+          {/* Search Box */}
+          <div className="crop-search-box">
+            <Search size={16} style={{ color: "#4a6b5c", flexShrink: 0 }} />
             <input
               type="text"
-              placeholder="Search crop (e.g. Tomato)..."
+              placeholder="Search crop (e.g. Tomato, Apple)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                style={{ background: "none", border: 0, padding: 0, cursor: "pointer", color: "#6b8879" }}
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
 
-          <div className="crop-grid-vertical">
-            {filteredCrops.map((c) => (
-              <button
-                key={c.crop}
-                className={`crop-nav-item ${selectedCrop?.crop === c.crop ? "active" : ""}`}
-                onClick={() => setSelectedCrop(c)}
-              >
-                <div>
-                  <strong>{c.crop}</strong>
-                  <small>{c.diseases?.length || 0} classes</small>
-                </div>
-                <ArrowUpRight size={15} />
-              </button>
-            ))}
+          {/* Category Filter Tabs */}
+          <div className="crop-filter-tabs">
+            <button
+              type="button"
+              className={`crop-filter-btn ${categoryTab === "all" ? "active" : ""}`}
+              onClick={() => setCategoryTab("all")}
+            >
+              All ({catalog.length})
+            </button>
+            <button
+              type="button"
+              className={`crop-filter-btn ${categoryTab === "fruits" ? "active" : ""}`}
+              onClick={() => setCategoryTab("fruits")}
+            >
+              Fruits ({catalog.filter(c => isFruit(c.crop)).length})
+            </button>
+            <button
+              type="button"
+              className={`crop-filter-btn ${categoryTab === "vegetables" ? "active" : ""}`}
+              onClick={() => setCategoryTab("vegetables")}
+            >
+              Vegetables ({catalog.filter(c => !isFruit(c.crop)).length})
+            </button>
+          </div>
+
+          {/* Options List */}
+          <div className="crop-options-list">
+            {filteredCrops.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px", color: "#6b8879", fontSize: "13px" }}>
+                No crops match "{query}"
+              </div>
+            ) : (
+              filteredCrops.map((c) => (
+                <button
+                  key={c.crop}
+                  type="button"
+                  className={`crop-option-item ${selectedCrop?.crop === c.crop ? "active" : ""}`}
+                  onClick={() => setSelectedCrop(c)}
+                >
+                  <div className="crop-option-main">
+                    <img
+                      src={getCropCover(c.crop)}
+                      alt={c.crop}
+                      className="crop-thumb-img"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg'; }}
+                    />
+                    <div className="crop-option-texts">
+                      <span className="crop-option-name">{c.crop}</span>
+                      <span className="crop-option-type">{isFruit(c.crop) ? "Fruit" : "Vegetable / Crop"}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span className="crop-count-badge">{c.diseases?.length || 0} Diseases</span>
+                    <ChevronRight size={16} style={{ color: selectedCrop?.crop === c.crop ? "#1a5e42" : "#92b1a0" }} />
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
+        {/* Right Details Panel with Disease Images */}
         <div className="crop-details-panel">
           {selectedCrop ? (
             <div>
-              <div className="card crop-header-card">
+              {/* Crop Header */}
+              <div className="card crop-header-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
                 <div>
-                  <p className="eyebrow">Species Profile</p>
-                  <h2>{selectedCrop.crop} Health Guide</h2>
-                  <p className="muted">
+                  <p className="eyebrow">{isFruit(selectedCrop.crop) ? "Fruit Plant Profile" : "Vegetable / Field Crop Profile"}</p>
+                  <h2>{selectedCrop.crop} Health & Pathology Guide</h2>
+                  <p className="muted" style={{ margin: "4px 0 0" }}>
                     Displaying symptoms, organic and chemical controls for {selectedCrop.diseases.length} condition(s).
                   </p>
                 </div>
+                <img
+                  src={getCropCover(selectedCrop.crop)}
+                  alt={selectedCrop.crop}
+                  style={{ width: "80px", height: "80px", borderRadius: "14px", objectFit: "cover", border: "2px solid #dcece3" }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/logo.svg'; }}
+                />
               </div>
 
+              {/* Disease Cards Stack with Images */}
               <div className="disease-cards-stack">
                 {selectedCrop.diseases.map((d) => (
-                  <div key={d.disease} className="card disease-detail-card">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <h4>{d.disease}</h4>
-                      <span className={`status-badge ${d.isHealthy ? "healthy" : d.severity}`}>
-                        {d.isHealthy ? "Healthy" : `${d.severity.toUpperCase()}`}
-                      </span>
+                  <div key={d.disease} className="disease-card-with-photo">
+                    {/* Disease Leaf Image Column */}
+                    <div className="disease-photo-col">
+                      <img
+                        src={getDiseasePhoto(selectedCrop.crop, d.disease)}
+                        alt={`${selectedCrop.crop} ${d.disease}`}
+                        className="disease-leaf-photo"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getCropCover(selectedCrop.crop);
+                        }}
+                      />
+                      <span className="disease-photo-caption">Leaf Pathology Sample</span>
+                      <button
+                        type="button"
+                        className="audio-speaker-btn"
+                        style={{ width: "100%", justifyContent: "center" }}
+                        onClick={() => {
+                          const text = d.isHealthy
+                            ? `${selectedCrop.crop} foliage is healthy. Normal leaf color and vigorous canopy detected.`
+                            : `${selectedCrop.crop} disease: ${d.disease}. Symptoms: ${d.symptoms}. Organic remedy: ${d.organicTreatment}. Chemical spray: ${d.chemicalTreatment}.`;
+                          speakText(text, language);
+                        }}
+                      >
+                        <Volume2 size={13} /> Listen Audio
+                      </button>
                     </div>
 
-                    <p className="disease-symptom-text">
-                      <strong>Symptoms:</strong> {d.symptoms}
-                    </p>
-
-                    {!d.isHealthy && (
-                      <div className="treatment-mini-grid">
-                        <div className="mini-treatment organic">
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                            <Leaf size={15} />
-                            <strong>Organic Remedy:</strong>
-                          </div>
-                          <p>{d.organicTreatment}</p>
-                        </div>
-                        <div className="mini-treatment chemical">
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                            <FlaskConical size={15} />
-                            <strong>Chemical Spray:</strong>
-                          </div>
-                          <p>{d.chemicalTreatment}</p>
-                        </div>
-                        <div className="mini-treatment prevention">
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                            <ShieldCheck size={15} />
-                            <strong>Prevention:</strong>
-                          </div>
-                          <p>{d.prevention}</p>
-                        </div>
+                    {/* Disease Information Column */}
+                    <div className="disease-info-col">
+                      <div className="disease-header-row">
+                        <h4>{d.disease}</h4>
+                        <span className={`status-badge ${d.isHealthy ? "healthy" : d.severity}`}>
+                          {d.isHealthy ? "Healthy" : `${d.severity.toUpperCase()} SEVERITY`}
+                        </span>
                       </div>
-                    )}
+
+                      <p className="disease-symptom-text">
+                        <strong>Observed Symptoms:</strong> {d.symptoms}
+                      </p>
+
+                      {!d.isHealthy && (
+                        <div className="treatment-mini-grid">
+                          <div className="mini-treatment organic">
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                              <Leaf size={15} />
+                              <strong>Organic Remedy:</strong>
+                            </div>
+                            <p>{d.organicTreatment}</p>
+                          </div>
+                          <div className="mini-treatment chemical">
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                              <FlaskConical size={15} />
+                              <strong>Chemical Spray:</strong>
+                            </div>
+                            <p>{d.chemicalTreatment}</p>
+                          </div>
+                          <div className="mini-treatment prevention">
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                              <ShieldCheck size={15} />
+                              <strong>Prevention:</strong>
+                            </div>
+                            <p>{d.prevention}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

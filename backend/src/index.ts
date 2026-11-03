@@ -9,19 +9,26 @@ import { generateAdvisorResponse } from "./advisor.js";
 
 dotenv.config();
 
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
+
 const app = express();
 const port = parseInt(process.env.PORT || "8080", 10);
 const corsOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173")
   .split(",")
-  .map(s => s.trim());
+  .map(s => s.trim())
+  .filter(Boolean);
+const sessionTtlMs = 1000 * 60 * 60 * 24 * 7;
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || corsOrigins.includes(origin) || corsOrigins.includes("*") || origin.startsWith("http://localhost:") || origin.endsWith(".vercel.app")) {
-      callback(null, true);
-    } else {
-      callback(null, true);
-    }
+    if (!origin || corsOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Origin is not allowed by CORS."));
   },
   credentials: true,
 }));
@@ -42,6 +49,46 @@ const upload = multer({
 });
 
 const inference = new InferenceEngine();
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const key = req.ip || "unknown";
+  const now = Date.now();
+  const current = requestCounts.get(key);
+  if (!current || current.resetAt <= now) {
+    requestCounts.set(key, { count: 1, resetAt: now + 60_000 });
+    next();
+    return;
+  }
+  current.count += 1;
+  if (current.count > 120) {
+    res.status(429).json({ error: "Too many requests. Please try again shortly." });
+    return;
+  }
+  next();
+});
+
+async function attachSession(req: Request): Promise<void> {
+  const cookies = req.headers.cookie?.split(";").map(value => value.trim()) || [];
+  const sessionCookie = cookies.find(cookie => cookie.startsWith("krishi_session="));
+  if (sessionCookie) {
+    req.userId = (await db.getSessionUserId(sessionCookie.slice("krishi_session=".length))) || undefined;
+  }
+}
+
+async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  await attachSession(req);
+  if (!req.userId) {
+    res.status(401).json({ error: "Authentication is required." });
+    return;
+  }
+  next();
+}
+
+function setSessionCookie(res: Response, sessionId: string): void {
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader("Set-Cookie", `krishi_session=${sessionId}; Max-Age=${sessionTtlMs / 1000}; Path=/; HttpOnly; SameSite=Lax${secure}`);
+}
 
 // Health Check
 app.get("/api/health", (_req: Request, res: Response) => {
@@ -56,6 +103,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // Image Inference
 app.post("/api/predictions", upload.single("image"), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    await attachSession(req);
     if (!req.file || !req.file.buffer) {
       res.status(400).json({ error: "Please upload an image file under the 'image' field." });
       return;
@@ -67,7 +115,7 @@ app.post("/api/predictions", upload.single("image"), async (req: Request, res: R
     let savedScan = null;
     if (predictions.length > 0) {
       const top = predictions[0];
-      savedScan = await db.saveScan(top.crop, top.disease, top.confidence, notes);
+      savedScan = await db.saveScan(top.crop, top.disease, top.confidence, notes, req.userId);
     }
 
     res.json({ predictions, scan: savedScan });
@@ -77,21 +125,33 @@ app.post("/api/predictions", upload.single("image"), async (req: Request, res: R
 });
 
 // Scan History
-app.get("/api/scans", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+app.get("/api/scans", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const scans = await db.getScans();
-    res.json(scans);
+    await attachSession(req);
+    const page = Number(req.query.page || 1);
+    const pageSize = Number(req.query.pageSize || 100);
+    const scans = await db.getScans(req.userId, page, pageSize);
+    res.json({ ...scans, page, pageSize });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/dashboard/summary", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    await attachSession(req);
+    res.json(await db.getDashboardSummary(req.userId));
   } catch (err) {
     next(err);
   }
 });
 
 // Update Scan Notes (Edit Access)
-app.patch("/api/scans/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+app.patch("/api/scans/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
     const { notes = "" } = req.body;
-    const updated = await db.updateScanNotes(id, notes);
+    const updated = await db.updateScanNotes(id, notes, req.userId);
     if (!updated) {
       res.status(404).json({ error: "Scan record not found." });
       return;
@@ -103,10 +163,10 @@ app.patch("/api/scans/:id", async (req: Request, res: Response, next: NextFuncti
 });
 
 // Delete Scan Record
-app.delete("/api/scans/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+app.delete("/api/scans/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const deleted = await db.deleteScan(id);
+    const deleted = await db.deleteScan(id, req.userId);
     res.json({ success: deleted });
   } catch (err) {
     next(err);
@@ -122,6 +182,7 @@ app.post("/api/auth/register", async (req: Request, res: Response): Promise<void
       return;
     }
     const user = await db.registerUser(name, contactNumber, password);
+    setSessionCookie(res, await db.createSession(user.id, sessionTtlMs));
     res.status(201).json({ user, message: "Registration successful." });
   } catch (err: any) {
     res.status(400).json({ error: err.message || "Registration failed." });
@@ -137,6 +198,7 @@ app.post("/api/auth/login", async (req: Request, res: Response): Promise<void> =
       return;
     }
     const user = await db.loginUser(contactNumber, password);
+    setSessionCookie(res, await db.createSession(user.id, sessionTtlMs));
     res.json({ user, message: "Login successful." });
   } catch (err: any) {
     res.status(401).json({ error: err.message || "Login failed." });
@@ -145,25 +207,19 @@ app.post("/api/auth/login", async (req: Request, res: Response): Promise<void> =
 
 // Authentication: Forgot Password
 app.post("/api/auth/forgot-password", async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { contactNumber, newPassword } = req.body;
-    if (!contactNumber || !newPassword) {
-      res.status(400).json({ error: "Contact number and new password are required." });
-      return;
-    }
-    await db.forgotPassword(contactNumber, newPassword);
-    res.json({ success: true, message: "Password updated successfully. You can now log in." });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message || "Password reset failed." });
-  }
+  res.status(503).json({ error: "Password reset requires verified email or SMS delivery and is not configured." });
 });
 
 // User Profile: Edit Access
-app.put("/api/auth/profile", async (req: Request, res: Response): Promise<void> => {
+app.put("/api/auth/profile", requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id, name, contactNumber, preferredLanguage } = req.body;
     if (!id || !name || !contactNumber) {
       res.status(400).json({ error: "User ID, name, and contact number are required." });
+      return;
+    }
+    if (id !== req.userId) {
+      res.status(403).json({ error: "You can only update your own profile." });
       return;
     }
     const updated = await db.updateUserProfile(id, name, contactNumber, preferredLanguage);
@@ -171,6 +227,18 @@ app.put("/api/auth/profile", async (req: Request, res: Response): Promise<void> 
   } catch (err: any) {
     res.status(400).json({ error: err.message || "Failed to update profile." });
   }
+});
+
+app.get("/api/auth/me", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  res.json({ userId: req.userId });
+});
+
+app.post("/api/auth/logout", async (req: Request, res: Response): Promise<void> => {
+  const cookies = req.headers.cookie?.split(";").map(value => value.trim()) || [];
+  const sessionCookie = cookies.find(cookie => cookie.startsWith("krishi_session="));
+  if (sessionCookie) await db.deleteSession(sessionCookie.slice("krishi_session=".length));
+  res.setHeader("Set-Cookie", "krishi_session=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax");
+  res.json({ success: true });
 });
 
 // Crop Library Metadata
