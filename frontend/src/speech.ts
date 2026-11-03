@@ -26,11 +26,7 @@ export function getBestVoice(language: string): SpeechSynthesisVoice | null {
   const prefix = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
   if (prefix) return prefix;
 
-  // Indian accent English fallback for Indian languages if native voice not installed on OS
-  const indianEn = voices.find(v => v.lang.toLowerCase() === "en-in");
-  if (indianEn) return indianEn;
-
-  return voices[0] || null;
+  return null;
 }
 
 export function speakText(
@@ -58,9 +54,12 @@ export function speakText(
   utterance.lang = locale;
 
   const voice = getBestVoice(language);
-  if (voice) {
-    utterance.voice = voice;
+  if (!voice && getLanguageLocale(language) !== "en-IN") {
+    console.warn(`No native ${locale} speech voice is installed in this browser.`);
+    if (onEnd) onEnd();
+    return false;
   }
+  if (voice) utterance.voice = voice;
 
   utterance.rate = 0.92; // Slightly measured rate for clear agricultural guidance
   utterance.pitch = 1.0;
@@ -83,4 +82,3 @@ export function stopSpeaking(): void {
     window.speechSynthesis.cancel();
   }
 }
-

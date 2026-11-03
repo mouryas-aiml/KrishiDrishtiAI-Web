@@ -10,10 +10,9 @@ export function generateAdvisorResponse(query: string, language: string = "Engli
 
   // Find if any specific crop or disease is mentioned in query
   const matchedDisease = CLASSES.find(c =>
-    !c.isHealthy && (
-      clean.includes(c.disease.toLowerCase()) ||
-      clean.includes(`${c.crop.toLowerCase()} ${c.disease.toLowerCase()}`)
-    )
+    !c.isHealthy && clean.includes(`${c.crop.toLowerCase()} ${c.disease.toLowerCase()}`)
+  ) || CLASSES.find(c =>
+    !c.isHealthy && clean.includes(c.disease.toLowerCase())
   );
 
   const matchedCrop = Array.from(new Set(CLASSES.map(c => c.crop))).find(crop =>

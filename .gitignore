@@ -6,5 +6,7 @@ backend/target/
 .env
 *.env.local
 model/venv/
+model/data/
+model/log/
 __pycache__/
 *.pyc

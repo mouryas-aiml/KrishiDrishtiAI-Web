@@ -5,10 +5,14 @@ High-performance, lightweight TypeScript backend for Krishi Drishti crop disease
 ## Architecture
 
 - **Runtime:** Node.js (v20+ or v24+) with TypeScript
-- **Inference Engine:** ONNX Runtime (`onnxruntime-node`) running the preserved `model/model.onnx` (256x256 RGB ImageNet normalized)
+- **Inference Engine:** ONNX Runtime (`onnxruntime-node`) running the preserved `model/model.onnx` (224x224 RGB ImageNet normalized)
 - **Image Processing:** `jimp` (100% pure JavaScript, zero native compilation required)
 - **Database:** PostgreSQL with automatic table provisioning and user-scoped scan ownership
 - **Framework:** Express + CORS + Multer
+
+The inference API rejects background, low-confidence, and ambiguous healthy
+predictions instead of presenting them as a diagnosis. The preserved model
+expects a fixed 224x224 RGB tensor.
 
 ## API Endpoints
 

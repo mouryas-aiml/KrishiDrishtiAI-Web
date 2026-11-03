@@ -6,6 +6,7 @@ import { InferenceEngine } from "./inference.js";
 import { db } from "./db.js";
 import { CLASSES } from "./classes.js";
 import { generateAdvisorResponse } from "./advisor.js";
+import { retrieveKnowledge } from "./rag.js";
 
 dotenv.config();
 
@@ -304,8 +305,18 @@ app.post("/api/chat", (req: Request, res: Response) => {
     res.status(400).json({ error: "Message content cannot be empty." });
     return;
   }
+  const sources = retrieveKnowledge(message);
+  if (!sources.length) {
+    res.status(422).json({
+      error: "No verified agricultural knowledge matched this question. Ask about a crop or disease covered by the available model metadata.",
+    });
+    return;
+  }
   const reply = generateAdvisorResponse(message, language);
-  res.json({ reply });
+  res.json({
+    reply: `${reply}\n\nSources:\n${sources.map((source) => `- ${source.title}: ${source.source}`).join("\n")}`,
+    sources,
+  });
 });
 
 // Centralized error handler

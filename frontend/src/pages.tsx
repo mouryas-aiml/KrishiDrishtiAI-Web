@@ -346,6 +346,9 @@ export function ScanPage({ language = "English", user }: { language?: string; us
       : `${top.crop} plant affected by ${top.disease}. Severity is ${top.severity}. Symptoms: ${top.symptoms}. Recommended organic treatment: ${top.organicTreatment}.`;
 
     const started = speakText(textToRead, language, () => setSpeaking(false));
+    if (!started && language !== "English") {
+      setError(`No native ${getLanguageLocale(language)} voice is available in this browser. Install a ${language} system voice or use a browser with ${language} speech support.`);
+    }
     if (started) setSpeaking(true);
   }
 
@@ -1129,6 +1132,7 @@ export function Assistant({ language = "English", user }: { language?: string; u
   const [currentLang, setCurrentLang] = useState(language);
   const [isRecording, setIsRecording] = useState(false);
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
+  const [speechError, setSpeechError] = useState("");
 
   const recognitionRef = useRef<any>(null);
 
@@ -1202,6 +1206,9 @@ export function Assistant({ language = "English", user }: { language?: string; u
     }
 
     const started = speakText(text, currentLang, () => setSpeakingIndex(null));
+    if (!started && currentLang !== "English") {
+      setSpeechError(`No native ${getLanguageLocale(currentLang)} voice is available in this browser. Install a ${currentLang} system voice or use a browser with ${currentLang} speech support.`);
+    }
     if (started) setSpeakingIndex(idx);
   }
 
@@ -1255,6 +1262,7 @@ export function Assistant({ language = "English", user }: { language?: string; u
         </div>
 
         <div className="chat-thread">
+          {speechError && <div className="form-error" role="status">{speechError}</div>}
           {messages.map((m, idx) => (
             <div key={idx} className={`chat-message ${m.role === "user" ? "user-msg" : "assistant-msg"}`}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

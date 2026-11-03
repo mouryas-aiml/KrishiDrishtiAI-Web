@@ -1,6 +1,6 @@
 import path from "path";
 import * as ort from "onnxruntime-node";
-import { Jimp } from "jimp";
+import sharp from "sharp";
 import { CLASSES, BACKGROUND_INDEX, CONFIDENCE_THRESHOLD, DiseaseInfo } from "./classes.js";
 
 export interface PredictionResult {
@@ -19,6 +19,7 @@ export interface PredictionResult {
 export class InferenceEngine {
   private session: ort.InferenceSession | null = null;
   private inputName: string = "serving_default_input.1";
+  // The checked-in ONNX graph has a fixed [1, 3, 224, 224] input.
   private inputSize: number = 224;
   private modelPath: string;
 
@@ -50,22 +51,22 @@ export class InferenceEngine {
       throw new Error("Model is not initialized.");
     }
 
-    // Decode and resize image with Jimp
-    const image = await Jimp.read(buffer);
     const size = this.inputSize;
-    image.cover({ w: size, h: size });
+    const { data: bitmapData, info } = await sharp(buffer)
+      .resize(size, size, { fit: "cover" })
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
 
-    // Build NCHW float tensor: [1, 3, 256, 256]
+    // Build NCHW float tensor matching model/predict.py: [1, 3, 224, 224].
     const pixelCount = size * size;
     const floatData = new Float32Array(3 * pixelCount);
 
     const MEAN = [0.485, 0.456, 0.406];
     const STD = [0.229, 0.224, 0.225];
 
-    const { data: bitmapData } = image.bitmap;
-
     for (let i = 0; i < pixelCount; i++) {
-      const offset = i * 4;
+      const offset = i * info.channels;
       const r = bitmapData[offset] / 255.0;
       const g = bitmapData[offset + 1] / 255.0;
       const b = bitmapData[offset + 2] / 255.0;
@@ -96,6 +97,10 @@ export class InferenceEngine {
       throw new Error("Model returned no predictions.");
     }
 
+    if (logits.length < CLASSES.length) {
+      throw new Error(`Model output has ${logits.length} classes, but ${CLASSES.length} class labels are configured.`);
+    }
+
     // Restrict to the known 39 classes
     const classCount = CLASSES.length;
     let maxLogit = -Infinity;
@@ -105,38 +110,48 @@ export class InferenceEngine {
       }
     }
 
-    // Stable softmax calculation
-    let sumExp = 0;
-    const expVals = new Float64Array(classCount);
-    for (let i = 0; i < classCount; i++) {
-      expVals[i] = Math.exp(logits[i] - maxLogit);
-      sumExp += expVals[i];
-    }
-
     const probabilities: number[] = [];
-    let maxProb = 0;
-    let maxIndex = 0;
-    for (let i = 0; i < classCount; i++) {
-      const p = expVals[i] / sumExp;
-      probabilities.push(p);
-      if (p > maxProb) {
-        maxProb = p;
-        maxIndex = i;
+    const outputSum = Array.from(logits.slice(0, classCount)).reduce((sum, value) => sum + value, 0);
+    const outputIsProbabilities = outputSum > 0.99 && outputSum < 1.01 &&
+      Array.from(logits.slice(0, classCount)).every((value) => value >= 0 && value <= 1);
+    if (outputIsProbabilities) {
+      probabilities.push(...Array.from(logits.slice(0, classCount)));
+    } else {
+      let sumExp = 0;
+      const expVals = new Float64Array(classCount);
+      for (let i = 0; i < classCount; i++) {
+        expVals[i] = Math.exp(logits[i] - maxLogit);
+        sumExp += expVals[i];
       }
+      for (let i = 0; i < classCount; i++) probabilities.push(expVals[i] / sumExp);
     }
 
     // Check if the top prediction is Background class (index 4)
-    if (maxIndex === BACKGROUND_INDEX && maxProb > 0.70) {
+    const maxIndex = probabilities.reduce((best, value, index) =>
+      value > probabilities[best] ? index : best, 0);
+    const maxProb = probabilities[maxIndex];
+    if (maxIndex === BACKGROUND_INDEX && maxProb >= CONFIDENCE_THRESHOLD) {
       throw new Error("The scan appears to be outside the supported leaf classes. Please photograph a well-lit crop leaf.");
     }
 
-    const candidates: PredictionResult[] = [];
-    for (let i = 0; i < classCount; i++) {
-      const prob = probabilities[i];
-      if (i !== BACKGROUND_INDEX && prob >= CONFIDENCE_THRESHOLD) {
-        const info = CLASSES[i];
-        candidates.push({
-          index: i,
+    if (maxProb < CONFIDENCE_THRESHOLD) {
+      throw new Error("Low confidence: Unable to identify a supported crop disease with certainty.");
+    }
+
+    const topInfo = CLASSES[maxIndex];
+    if (topInfo.isHealthy && maxProb < 0.80) {
+      throw new Error("The image is inconclusive. The model cannot safely confirm healthy foliage; please upload a closer, well-lit leaf photo.");
+    }
+
+    const candidates = probabilities
+      .map((prob, index) => ({ prob, index }))
+      .filter(({ index }) => index !== BACKGROUND_INDEX)
+      .sort((a, b) => b.prob - a.prob)
+      .slice(0, 3)
+      .map(({ prob, index }) => {
+        const info: DiseaseInfo = CLASSES[index];
+        return {
+          index,
           crop: info.crop,
           disease: info.disease,
           confidence: Math.round(prob * 1000) / 1000,
@@ -146,43 +161,9 @@ export class InferenceEngine {
           organicTreatment: info.organicTreatment,
           chemicalTreatment: info.chemicalTreatment,
           prevention: info.prevention,
-        });
-      }
-    }
+        };
+      });
 
-    // Sort descending by confidence
-    candidates.sort((a, b) => b.confidence - a.confidence);
-
-    if (candidates.length === 0) {
-      // If none exceeded threshold, return the highest non-background class if reasonable
-      let bestNonBgIdx = 0;
-      let bestNonBgProb = 0;
-      for (let i = 0; i < classCount; i++) {
-        if (i !== BACKGROUND_INDEX && probabilities[i] > bestNonBgProb) {
-          bestNonBgProb = probabilities[i];
-          bestNonBgIdx = i;
-        }
-      }
-      if (bestNonBgProb > 0.1) {
-        const info = CLASSES[bestNonBgIdx];
-        candidates.push({
-          index: bestNonBgIdx,
-          crop: info.crop,
-          disease: info.disease,
-          confidence: Math.round(bestNonBgProb * 1000) / 1000,
-          isHealthy: info.isHealthy,
-          severity: info.severity,
-          symptoms: info.symptoms,
-          organicTreatment: info.organicTreatment,
-          chemicalTreatment: info.chemicalTreatment,
-          prevention: info.prevention,
-        });
-      } else {
-        throw new Error("Low confidence: Unable to identify a supported crop disease with certainty.");
-      }
-    }
-
-    return candidates.slice(0, 3);
+    return candidates;
   }
 }
-

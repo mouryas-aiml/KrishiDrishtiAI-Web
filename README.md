@@ -92,9 +92,22 @@ reachable from that device.
 | `GET` | `/api/health` | Backend health check |
 
 Image inference preserves the original 224x224 RGB preprocessing, ImageNet
-normalization, 39 output classes, background class index 4, stable softmax,
-and 0.25 display threshold. Unsupported images return an explicit error; the
-frontend never fabricates predictions.
+normalization, 39 output classes, background class index 4, and the Python
+pipeline's probability output. Logit outputs are softmax-normalized only when
+the model output is not already a probability vector. The API returns the
+three highest non-background classes; unsupported images return an explicit
+error and the frontend never fabricates predictions.
+
+`POST /api/chat` performs server-side lexical retrieval over the verified class
+metadata in `backend/src/classes.ts` and returns source records with the
+grounded answer. Questions with no matching source are rejected rather than
+returning a fabricated offline response.
+
+Browser text-to-speech uses a native voice for the selected locale. Kannada
+(`kn-IN`), Telugu (`te-IN`), Tamil (`ta-IN`), Hindi (`hi-IN`), and Malayalam
+(`ml-IN`) require that locale's voice to be installed by the browser or
+operating system; the UI reports when it is unavailable instead of silently
+speaking English.
 
 ## Repository structure
 
@@ -137,7 +150,11 @@ npm run build
 - [PlantVillage Complete on Kaggle](https://www.kaggle.com/datasets/nishantvalvi1504/plantvillagecomplete/data)
 
 The model output mapping, not the complete PlantVillage catalogue, defines
-which classes this application supports.
+which classes this application supports. To prepare a larger reproducible
+training set without committing raw images, use
+[`dataset/prepare_plantvillage.py`](./dataset/prepare_plantvillage.py) and
+follow [`dataset/README.md`](./dataset/README.md). Retraining must export a
+224x224 model and update the backend class metadata together.
 
 ## License
 

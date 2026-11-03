@@ -1,16 +1,17 @@
 import argparse
 import os
+import sys
+from pathlib import Path
 import torch.onnx
 import onnxruntime
 import numpy as np
-from model.model.make_model import make_model
-from model.config import cfg
+import torch.nn as nn
 
-# Move to project root directory
-current_dir = os.getcwd()
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-os.chdir(parent_dir)
-print("Working directory:", os.getcwd())
+MODEL_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(MODEL_ROOT))
+
+from model.make_model import make_model
+from config import cfg
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="PyTorch to ONNX export script")
@@ -31,10 +32,21 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()
 
+    class LogitsOnly(nn.Module):
+        def __init__(self, wrapped_model):
+            super().__init__()
+            self.wrapped_model = wrapped_model
+
+        def forward(self, inputs):
+            logits, _ = self.wrapped_model(inputs)
+            return logits
+
+    export_model = LogitsOnly(model).eval()
+
     # Export to ONNX
-    dummy_input = torch.zeros((1, 3, 256, 256))
+    dummy_input = torch.zeros((1, 3, 224, 224))
     torch.onnx.export(
-        model,
+        export_model,
         dummy_input,
         "model.onnx",
         input_names=["input"],
@@ -48,6 +60,6 @@ if __name__ == "__main__":
     session = onnxruntime.InferenceSession("model.onnx")
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
-    x = np.zeros((1, 3, 256, 256), dtype=np.float32)
+    x = np.zeros((1, 3, 224, 224), dtype=np.float32)
     output_data = session.run([output_name], {input_name: x})[0]
     print("✅ ONNX inference successful. Output shape:", output_data.shape)

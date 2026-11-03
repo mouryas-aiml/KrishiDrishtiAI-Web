@@ -1,5 +1,4 @@
 import axios from "axios";
-import { clientSideInference } from "./clientVision";
 
 const isBrowser = typeof window !== "undefined";
 const isLocalhost = isBrowser && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
@@ -129,43 +128,20 @@ export async function checkApiHealth(): Promise<{ status: string; service: strin
   }
 }
 
-// Image Inference with Client-Side Fallback
+// Image inference is intentionally backend-only: predictions must come from the
+// versioned ONNX model and its server-side preprocessing pipeline.
 export async function predictImage(file: File | Blob, notes?: string): Promise<{ predictions: Prediction[]; scan?: Scan }> {
-  // 1. Attempt remote backend inference if available
-  try {
-    const form = new FormData();
-    form.append("image", file, "leaf_scan.jpg");
-    if (notes) form.append("notes", notes);
+  const form = new FormData();
+  form.append("image", file, "leaf_scan.jpg");
+  if (notes) form.append("notes", notes);
 
-    const response = await api.post<{ predictions: Prediction[]; scan?: Scan }>("/predictions", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-      timeout: 6000,
-    });
-
-    if (response.data && response.data.predictions && response.data.predictions.length > 0) {
-      if (response.data.scan) {
-        saveLocalScan(response.data.scan);
-      }
-      return response.data;
-    }
-  } catch (err) {
-    console.warn("[predictImage] Backend API unreachable or blocked. Running client-side crop vision engine:", err);
+  const response = await api.post<{ predictions: Prediction[]; scan?: Scan }>("/predictions", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  if (!response.data.predictions?.length) {
+    throw new Error("The inference service returned no predictions.");
   }
-
-  // 2. Client-Side Vision Engine fallback - guarantees zero Network Errors on Vercel or offline!
-  const predictions = await clientSideInference(file);
-  const top = predictions[0];
-  const localScan: Scan = {
-    id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `scan_${Date.now()}`,
-    crop: top.crop,
-    disease: top.disease,
-    confidence: top.confidence,
-    notes: notes || "",
-    createdAt: new Date().toISOString()
-  };
-  saveLocalScan(localScan);
-
-  return { predictions, scan: localScan };
+  return response.data;
 }
 
 export async function getScans(): Promise<Scan[]> {
@@ -283,40 +259,9 @@ export async function getCrops(): Promise<CropCatalogItem[]> {
 }
 
 export async function askAssistant(message: string, language: string = "English"): Promise<string> {
-  try {
-    const response = await api.post<{ reply: string }>("/chat", { message, language }, { timeout: 6000 });
-    if (response.data && response.data.reply) {
-      return response.data.reply;
-    }
-  } catch {
-    // Client-side agronomic advisor fallback
-  }
-
-  // Offline / Client fallback advisor in the user's chosen language
-  const q = message.toLowerCase();
-  const isKan = language.toLowerCase().includes("kan");
-  const isTel = language.toLowerCase().includes("tel");
-  const isTam = language.toLowerCase().includes("tam");
-  const isMal = language.toLowerCase().includes("mal");
-  const isHin = language.toLowerCase().includes("hin");
-
-  if (isKan) {
-    return `[ಕೃಷಿ ದೃಷ್ಟಿ ಎಐ ಸಲಹೆಗಾರ]\nನಿಮ್ಮ ಪ್ರಶ್ನೆ: "${message}"\n• ರೋಗ ಹತೋಟಿ: ಬೇವಿನ ಎಣ್ಣೆ (5 ಮಿಲಿ / ಲೀಟರ್ ನೀರು) ಅಥವಾ ತಾಮ್ರದ ಶಿಲೀಂಧ್ರನಾಶಕವನ್ನು ಸಿಂಪಡಿಸಿ.\n• ಮುನ್ನೆಚ್ಚರಿಕೆ: ನೀರಿನ ಹರಿವನ್ನು ಸರಿಯಾಗಿ ನಿರ್ವಹಿಸಿ ಮತ್ತು ತೇವಾಂಶ ಹೆಚ್ಚಿರುವಾಗ ಎಲೆಗಳ ಮೇಲೆ ನೀರು ಬೀಳದಂತೆ ನೋಡಿಕೊಳ್ಳಿ.`;
-  }
-  if (isTel) {
-    return `[కృషి దృష్టి ఏఐ సలహాదారు]\nమీ ప్రశ్న: "${message}"\n• నివారణ: వేప నూనె (5ml/లీటర్) లేదా కాపర్ హైడ్రాక్సైడ్ పిచికారీ చేయండి.\n• జాగ్రత్త: మొక్కల మధ్య గాలి ప్రసరణ ఉండేలా చూడండి మరియు డ్రిప్ పద్ధతిని ఉపయోగించండి.`;
-  }
-  if (isTam) {
-    return `[கிருஷி திருஷ்டி ஏஐ உதவியாளர்]\nஉங்கள் கேள்வி: "${message}"\n• சிகிச்சை: வேப்பெண்ணெய் கரைசல் (5 மிலி / லிட்டர்) அல்லது தாமிர பூஞ்சைக்கொல்லி தெளிக்கவும்.\n• முன்னெச்சரிக்கை: பயிர்களுக்கு இடையில் சரியான காற்றோட்டம் மற்றும் சொட்டு நீர் பாசனத்தை பராமரிக்கவும்.`;
-  }
-  if (isMal) {
-    return `[കൃഷി ദൃഷ്ടി ഏഐ സഹായി]\nനിങ്ങളുടെ ചോദ്യം: "${message}"\n• പ്രതിവിധി: വേപ്പെണ്ണ മിശ്രിതം (5 മിലി / ലിറ്റർ) അല്ലെങ്കിൽ കോപ്പർ കുമിൾനാശിനി തളിക്കുക.\n• മുൻകരുതൽ: ഇലകളിൽ അധിക ഈർപ്പം തങ്ങിനിൽക്കാതെ ശ്രദ്ധിക്കുക.`;
-  }
-  if (isHin) {
-    return `[कृषि दृष्टि एआई सलाहकार]\nआपका प्रश्न: "${message}"\n• उपचार: नीम का तेल (5ml प्रति लीटर) या कॉपर फंगीसाइड का छिड़काव करें।\n• रोकथाम: उचित जल निकासी रखें और शाम के समय छिड़काव करें।`;
-  }
-
-  return `### Krishi Drishti Agronomic Advisory\nRegarding: "${message}"\n- **Immediate Treatment:** Apply cold-pressed neem oil (5 ml/L) or copper hydroxide bio-protectant.\n- **Field Practice:** Avoid overhead watering to prevent spore dispersal; maintain balanced potassium nutrition.`;
+  const response = await api.post<{ reply: string }>("/chat", { message, language }, { timeout: 6000 });
+  if (!response.data?.reply) throw new Error("The assistant returned no grounded answer.");
+  return response.data.reply;
 }
 
 // Authentication APIs

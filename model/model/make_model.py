@@ -41,12 +41,11 @@ class KrishiDrishtiAI(nn.Module):
         elif cfg.MODEL.MODEL_TYPE == "resnet":
             self.base = make_resnet_model(cfg.MODEL.MODEL_NAME)
             self.base.fc = nn.Linear(self.base.fc.in_features, num_classes)
-        self.softmax = nn.Softmax(dim=1)
-
     def forward(self, x):
         obj_class = self.imageNetModel(x)
         x = self.base(x)
-        x = self.softmax(x)
+        # CrossEntropyLoss expects logits. Applying softmax here weakens
+        # gradients and makes confidence calibration worse during training.
         return x, obj_class
 
 
