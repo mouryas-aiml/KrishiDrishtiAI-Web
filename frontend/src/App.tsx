@@ -287,10 +287,10 @@ export default function App() {
             {/* Profile or Login Button */}
             {user ? (
               <div className="profile-chip profile-chip-interactive" onClick={openProfileEditor} title="Click to view and edit profile">
-                <span>{user.name.slice(0, 2).toUpperCase()}</span>
+                <span>{(user.name || "KD").slice(0, 2).toUpperCase()}</span>
                 <div>
-                  <strong>{user.name}</strong>
-                  <small>{user.contactNumber}</small>
+                  <strong>{user.name || "Farmer"}</strong>
+                  <small>{user.contactNumber || ""}</small>
                 </div>
               </div>
             ) : (

@@ -18,6 +18,7 @@ High-performance, lightweight TypeScript backend for Krishi Drishti crop disease
 | `POST` | `/api/predictions` | Multipart leaf image upload and inference |
 | `GET` | `/api/scans` | Historical scan journal |
 | `GET` | `/api/dashboard/summary` | Database-backed scan aggregates |
+| `GET` | `/api/weather?latitude=&longitude=` | Open-Meteo current and forecast data |
 | `DELETE` | `/api/scans/:id` | Remove a scan record |
 | `POST` | `/api/auth/logout` | Revoke the current HTTP-only session |
 | `GET` | `/api/auth/me` | Validate the current session |

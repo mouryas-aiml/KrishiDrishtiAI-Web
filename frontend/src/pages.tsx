@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
@@ -43,6 +43,7 @@ import {
   getCrops,
   getDashboardSummary,
   getScans,
+  getWeather,
   predictImage,
   updateScanNotes,
   CropCatalogItem,
@@ -50,6 +51,8 @@ import {
   Scan,
   User
 } from "./api";
+
+const FarmScene = lazy(() => import("./FarmScene"));
 
 // Fallback crop catalog so the catalog works immediately
 const defaultCrops = [
@@ -94,18 +97,19 @@ export function Dashboard({ language = "English", user }: { language?: string; u
 
   useEffect(() => {
     getScans()
-      .then((data) => setScans(data))
+      .then((data) => setScans(Array.isArray(data) ? data : []))
       .catch((err) => console.warn("Failed to load recent scans:", err))
       .finally(() => setLoading(false));
     getDashboardSummary()
-      .then((aggregate) => setSummary(aggregate))
+      .then((aggregate) => aggregate && setSummary(aggregate))
       .catch((err) => console.warn("Failed to load dashboard summary:", err));
   }, []);
 
-  const totalScans = summary?.totalScans ?? scans.length;
-  const healthyCount = summary?.healthyScans ?? scans.filter((s) => s.disease.toLowerCase() === "healthy").length;
+  const scanList = Array.isArray(scans) ? scans : [];
+  const totalScans = summary?.totalScans ?? scanList.length;
+  const healthyCount = summary?.healthyScans ?? scanList.filter((s) => s.disease && s.disease.toLowerCase() === "healthy").length;
   const healthyRatio = totalScans > 0 ? Math.round((healthyCount / totalScans) * 100) : 100;
-  const recentObservations = scans.slice(0, 5);
+  const recentObservations = scanList.slice(0, 5);
 
   return (
     <section className="page-grid">
@@ -131,7 +135,9 @@ export function Dashboard({ language = "English", user }: { language?: string; u
           </div>
         </div>
         <div className="hero-logo-showcase">
-          <img src="/logo.svg" alt="Krishi Drishti Official Logo" className="hero-main-logo" />
+          <Suspense fallback={<img src="/logo.svg" alt="Krishi Drishti Official Logo" className="hero-main-logo" />}>
+            <FarmScene />
+          </Suspense>
         </div>
       </div>
 
@@ -776,9 +782,12 @@ export function Analytics({ language = "English" }: { language?: string }) {
   }
 
   // Distribution calculations
+  const scanList = Array.isArray(scans) ? scans : [];
   const cropCounts: Record<string, number> = {};
-  scans.forEach((s) => {
-    cropCounts[s.crop] = (cropCounts[s.crop] || 0) + 1;
+  scanList.forEach((s) => {
+    if (s && s.crop) {
+      cropCounts[s.crop] = (cropCounts[s.crop] || 0) + 1;
+    }
   });
 
   const cropChartData = Object.entries(cropCounts).map(([name, count]) => ({
@@ -827,13 +836,13 @@ export function Analytics({ language = "English" }: { language?: string }) {
           <p className="eyebrow">Health Distribution</p>
           <h3>Healthy vs Diseased Crops</h3>
           <div style={{ height: "260px", marginTop: "16px" }}>
-            {scans.length > 0 ? (
+            {scanList.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      { name: "Healthy", value: scans.filter((s) => s.disease.toLowerCase() === "healthy").length },
-                      { name: "Diseased", value: scans.filter((s) => s.disease.toLowerCase() !== "healthy").length },
+                      { name: "Healthy", value: scanList.filter((s) => s.disease && s.disease.toLowerCase() === "healthy").length },
+                      { name: "Diseased", value: scanList.filter((s) => s.disease && s.disease.toLowerCase() !== "healthy").length },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -865,7 +874,7 @@ export function Analytics({ language = "English" }: { language?: string }) {
           <div style={{ padding: "40px", textAlign: "center" }}>
             <Loader2 className="animate-spin" size={24} style={{ color: "#1e6b4d", margin: "auto" }} />
           </div>
-        ) : scans.length === 0 ? (
+        ) : scanList.length === 0 ? (
           <p className="muted" style={{ padding: "20px 0" }}>No scans found.</p>
         ) : (
           <div className="table-responsive" style={{ marginTop: "16px" }}>
@@ -881,7 +890,7 @@ export function Analytics({ language = "English" }: { language?: string }) {
                 </tr>
               </thead>
               <tbody>
-                {scans.map((s) => (
+                {scanList.map((s) => (
                   <tr key={s.id}>
                     <td><strong>{s.crop}</strong></td>
                     <td>
@@ -1185,11 +1194,40 @@ export function Assistant({ language = "English", user }: { language?: string; u
 }
 
 export function Weather({ language = "English" }: { language?: string }) {
-  const [humidity, setHumidity] = useState(82);
-  const [temp, setTemp] = useState(24);
+  const [coordinates, setCoordinates] = useState({ latitude: 12.9716, longitude: 77.5946 });
+  const [weather, setWeather] = useState<Awaited<ReturnType<typeof getWeather>> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const isBlightRisk = humidity > 75 && temp >= 18 && temp <= 26;
-  const isMildewRisk = humidity > 60 && temp >= 22 && temp <= 30;
+  async function loadWeather() {
+    setLoading(true);
+    setError("");
+    try {
+      setWeather(await getWeather(coordinates.latitude, coordinates.longitude));
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || "Unable to load weather data.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported. Enter farm coordinates manually.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => setCoordinates({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+      () => setError("Location permission was not granted. Enter farm coordinates manually."),
+      { enableHighAccuracy: false, timeout: 10000 },
+    );
+  }
+
+  const current = weather?.data.current;
+  const humidity = Number(current?.relative_humidity_2m);
+  const temp = Number(current?.temperature_2m);
+  const isBlightRisk = Number.isFinite(humidity) && Number.isFinite(temp) && humidity > 75 && temp >= 18 && temp <= 26;
+  const isMildewRisk = Number.isFinite(humidity) && Number.isFinite(temp) && humidity > 60 && temp >= 22 && temp <= 30;
 
   return (
     <section className="page-grid">
@@ -1208,57 +1246,49 @@ export function Weather({ language = "English" }: { language?: string }) {
         <div className="card">
           <div className="section-head">
             <div>
-              <p className="eyebrow">Interactive Simulation</p>
+              <p className="eyebrow">Open-Meteo Field Data</p>
               <h3>Current Field Weather Conditions</h3>
             </div>
           </div>
 
-          <div style={{ marginTop: "20px", display: "grid", gap: "20px" }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <strong>Relative Humidity: {humidity}%</strong>
-                <span>{humidity > 75 ? "High (Fungal Risk)" : "Moderate"}</span>
-              </div>
-              <input
-                type="range"
-                min="30"
-                max="100"
-                value={humidity}
-                onChange={(e) => setHumidity(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
+          <div style={{ marginTop: "20px", display: "grid", gap: "12px" }}>
+            <div className="coordinate-row">
+              <label>Latitude <input type="number" step="any" value={coordinates.latitude} onChange={(e) => setCoordinates({ ...coordinates, latitude: Number(e.target.value) })} /></label>
+              <label>Longitude <input type="number" step="any" value={coordinates.longitude} onChange={(e) => setCoordinates({ ...coordinates, longitude: Number(e.target.value) })} /></label>
             </div>
-
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                <strong>Field Temperature: {temp}°C</strong>
-                <span>{temp >= 20 && temp <= 28 ? "Optimal for Crop & Spores" : "Cool / Hot"}</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="40"
-                value={temp}
-                onChange={(e) => setTemp(Number(e.target.value))}
-                style={{ width: "100%" }}
-              />
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button type="button" className="button" onClick={loadWeather} disabled={loading}>{loading ? "Loading..." : "Load live weather"}</button>
+              <button type="button" className="button button-light" onClick={useCurrentLocation}>Use my location</button>
             </div>
+            {error && <div className="error-box"><AlertTriangle size={18} /><span>{error}</span></div>}
+            {current ? (
+              <div className="weather-metrics">
+                <strong>{current.temperature_2m}°C</strong>
+                <span>Humidity {current.relative_humidity_2m}%</span>
+                <span>Dew point {current.dew_point_2m}°C</span>
+                <span>Rain {current.precipitation} mm</span>
+                <span>Wind {current.wind_speed_10m} km/h</span>
+                <small style={{ width: "100%", color: "#6b8879" }}>
+                  Source: {weather?.source} · Retrieved {weather ? new Date(weather.fetchedAt).toLocaleString() : ""}
+                </small>
+              </div>
+            ) : <p className="muted">Load weather for a selected farm coordinate. No weather values are assumed.</p>}
           </div>
         </div>
 
         <div className="card">
-          <p className="eyebrow">Calculated Disease Risk</p>
+          <p className="eyebrow">Rule-based Environmental Assessment</p>
           <h3>Active Pathogen Warnings</h3>
 
           <div style={{ marginTop: "16px", display: "grid", gap: "12px" }}>
             <div className={`risk-banner ${isBlightRisk ? "high" : "low"}`}>
               <ShieldAlert size={20} />
               <div>
-                <strong>Tomato & Potato Late Blight Risk: {isBlightRisk ? "HIGH" : "LOW"}</strong>
+                <strong>Tomato & Potato Late Blight Risk: {current ? (isBlightRisk ? "HIGH" : "LOW") : "Unavailable"}</strong>
                 <p style={{ margin: "2px 0 0", fontSize: "12px" }}>
                   {isBlightRisk
-                    ? "Warm temperatures combined with high humidity create peak conditions for Phytophthora infestans."
-                    : "Conditions are suboptimal for late blight spore formation."}
+                    ? "Warm temperatures combined with high humidity are environmental conditions associated with late blight risk; this is not a disease diagnosis."
+                    : current ? "Current conditions are below this screening rule; continue field scouting." : "Load weather data to evaluate this screening rule."}
                 </p>
               </div>
             </div>
@@ -1266,11 +1296,11 @@ export function Weather({ language = "English" }: { language?: string }) {
             <div className={`risk-banner ${isMildewRisk ? "high" : "low"}`}>
               <AlertTriangle size={20} />
               <div>
-                <strong>Powdery Mildew Risk: {isMildewRisk ? "MODERATE-HIGH" : "LOW"}</strong>
+                <strong>Powdery Mildew Risk: {current ? (isMildewRisk ? "MODERATE-HIGH" : "LOW") : "Unavailable"}</strong>
                 <p style={{ margin: "2px 0 0", fontSize: "12px" }}>
                   {isMildewRisk
-                    ? "Moderate warmth and elevated moisture favor conidial sporulation across squash, grape, and cherry."
-                    : "Low risk of powdery mildew transmission."}
+                    ? "Moderate warmth and elevated moisture match this environmental screening rule; this is not a disease diagnosis."
+                    : current ? "Current conditions are below this screening rule; continue field scouting." : "Load weather data to evaluate this screening rule."}
                 </p>
               </div>
             </div>

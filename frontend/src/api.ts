@@ -42,6 +42,16 @@ export interface DashboardSummary {
   lastUpdated: string;
 }
 
+export interface WeatherResponse {
+  source: string;
+  fetchedAt: string;
+  coordinates: { latitude: number; longitude: number };
+  data: {
+    current?: Record<string, number | string>;
+    daily?: Record<string, Array<number | string>>;
+  };
+}
+
 export interface User {
   id: string;
   name: string;
@@ -89,12 +99,32 @@ export async function predictImage(file: File | Blob, notes?: string): Promise<{
 }
 
 export async function getScans(): Promise<Scan[]> {
-  const response = await api.get<{ items: Scan[] }>("/scans");
-  return response.data.items;
+  try {
+    const response = await api.get("/scans");
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (response.data && Array.isArray(response.data.items)) {
+      return response.data.items;
+    }
+    return [];
+  } catch (err) {
+    console.warn("Failed to get scans:", err);
+    return [];
+  }
 }
 
-export async function getDashboardSummary(): Promise<DashboardSummary> {
-  const response = await api.get<DashboardSummary>("/dashboard/summary");
+export async function getDashboardSummary(): Promise<DashboardSummary | null> {
+  try {
+    const response = await api.get<DashboardSummary>("/dashboard/summary");
+    return response.data || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function getWeather(latitude: number, longitude: number): Promise<WeatherResponse> {
+  const response = await api.get<WeatherResponse>("/weather", { params: { latitude, longitude } });
   return response.data;
 }
 

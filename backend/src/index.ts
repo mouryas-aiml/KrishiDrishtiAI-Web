@@ -146,6 +146,40 @@ app.get("/api/dashboard/summary", async (req: Request, res: Response, next: Next
   }
 });
 
+app.get("/api/weather", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const latitude = Number(req.query.latitude);
+    const longitude = Number(req.query.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      res.status(400).json({ error: "Valid latitude and longitude are required." });
+      return;
+    }
+
+    const params = new URLSearchParams({
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      current: "temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,wind_speed_10m",
+      hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,precipitation",
+      daily: "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
+      forecast_days: "7",
+      timezone: "auto",
+    });
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+    if (!response.ok) {
+      throw new Error(`Open-Meteo returned HTTP ${response.status}.`);
+    }
+    const data = await response.json();
+    res.json({
+      source: "Open-Meteo",
+      fetchedAt: new Date().toISOString(),
+      coordinates: { latitude, longitude },
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Update Scan Notes (Edit Access)
 app.patch("/api/scans/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
